@@ -19,11 +19,18 @@ namespace GrappleGame
         public string text = "";
         KeyboardState currentkeyboard;
         KeyboardState oldkeyboard;
+        /// <summary>
+        /// Used to Input Strings From User Keyboard
+        /// </summary>
+        /// <returns>
+        /// True: String has finished being entered.
+        /// False: String has not been completed
+        /// </returns>
         public bool userinput()
         {
             oldkeyboard = currentkeyboard;
             currentkeyboard = Keyboard.GetState();
-            bool NotDone = true;
+            bool Done = false;
             Keys[] pressedkeys;
 
             pressedkeys = currentkeyboard.GetPressedKeys();
@@ -49,17 +56,53 @@ namespace GrappleGame
                         text = text.Insert(text.Length, "!");
                     else if (keys == Keys.OemTilde)
                         text = text.Insert(text.Length, "'");
+                    else if (keys == Keys.Escape)
+                        Done = true;
                     else if (keys == Keys.Tab)
-                        NotDone = false;
-                    else if (keys == Keys.Down)
                     {
-                        text = "";
-                        NotDone = false;
+                        text += text.Insert(text.Length, "\t");
+                        Done = true;
                     }
                     else text += keys.ToString();
                 }
             }
-            return NotDone;
+            return Done;
+        }
+        public bool NumericalInput()
+        {
+            oldkeyboard = currentkeyboard;
+            currentkeyboard = Keyboard.GetState();
+            bool Done = false;
+            Keys[] pressedkeys;
+
+            pressedkeys = currentkeyboard.GetPressedKeys();
+            foreach (Keys keys in pressedkeys)
+            {
+                if (keys == Keys.D0)
+                    text = text.Insert(text.Length, "0");
+                else if (keys == Keys.D1)
+                    text = text.Insert(text.Length, "1");
+                else if (keys == Keys.D2)
+                    text = text.Insert(text.Length, "2");
+                else if (keys == Keys.D3)
+                    text = text.Insert(text.Length, "3");
+                else if (keys == Keys.D4)
+                    text = text.Insert(text.Length, "4");
+                else if (keys == Keys.D5)
+                    text = text.Insert(text.Length, "5");
+                else if (keys == Keys.D6)
+                    text = text.Insert(text.Length, "6");
+                else if (keys == Keys.D7)
+                    text = text.Insert(text.Length, "7");
+                else if (keys == Keys.D8)
+                    text = text.Insert(text.Length, "8");
+                else if (keys == Keys.D9)
+                    text = text.Insert(text.Length, "9");
+                else if (keys == Keys.Enter)
+                    Done = true;
+            }
+
+            return Done;
         }
     }
     class XFiles : Game

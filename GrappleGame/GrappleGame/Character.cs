@@ -14,7 +14,7 @@ namespace GrappleGame
     class Character
     {
         /// <summary>
-        /// This Enum designates all of the different actions the dude can perform (with the exception of grappling)
+        /// This Enum designates all of the different actions the characters can perform
         /// </summary>
         enum Action
         {
@@ -24,17 +24,31 @@ namespace GrappleGame
             Jumping,
             Blocking,
             Falling,
-            Damaged,
             Talking,
         }
 
         /// <summary>
-        /// This specific instance of the Action enum keeps track of the dudes current action, with no action represented as standing
+        /// This specific instance of the Action enum keeps track of the characters current action, with no action represented as standing
         /// </summary>
         Action currentAction = Action.Standing;
 
         /// <summary>
-        /// This Enum designates all of the different states an action can be in. Standby is waiting for an action, and the rest are how far the action the dude is performing has progressed
+        /// This Enum designates the various states a character can be in when being edited
+        /// </summary>
+        enum CharacterEditing
+        {
+            None,
+            Words,
+            Boundaries,
+        }
+
+        /// <summary>
+        /// This specific instance of the CharacterEditing enum keeps track of the current editing state of a character
+        /// </summary>
+        CharacterEditing currentCharacterEditing = CharacterEditing.None;
+
+        /// <summary>
+        /// This Enum designates all of the different states an action can be in. Standby is waiting for an action, and the rest are how far the action the character is performing has progressed
         /// </summary>
         enum ActionState
         {
@@ -46,12 +60,12 @@ namespace GrappleGame
         }
 
         /// <summary>
-        /// This specific instance of the ActionState enum keeps track of the dudes current progress through an action
+        /// This specific instance of the ActionState enum keeps track of the characters current progress through an action
         /// </summary>
         ActionState currentActionState = ActionState.Standby;
 
         /// <summary>
-        /// This enum designates the four possible directions in the 2-D space. Note that all direction controlled processes in the dude are constrained to vertical and horizontal directions
+        /// This enum designates the four possible directions in the 2-D space. Note that all direction controlled processes in the character are constrained to vertical and horizontal directions
         /// </summary>
         enum Direction
         {
@@ -62,7 +76,7 @@ namespace GrappleGame
         }
 
         /// <summary>
-        /// This specific instance of the Direction enum keeps track of the direction the dude is facing
+        /// This specific instance of the Direction enum keeps track of the direction the character is facing
         /// </summary>
         Direction currentFacingDirection = Direction.Down;
 
@@ -130,16 +144,6 @@ namespace GrappleGame
         private Texture2D shadow;
 
         /// <summary>
-        /// Creates the worldview. Contains the transformation that accurately places the camera looking at the world over the dude
-        /// </summary>
-        public Matrix transform;
-
-        /// <summary>
-        /// the zoom scale. increasing the scale moves the camera closer to the dude, and vice versa
-        /// </summary>
-        public float zoom = 1;
-
-        /// <summary>
         /// The position of the dude in tile count. The "Official" position of the dude.
         /// </summary>
         public Vector2 tilePosition;
@@ -180,9 +184,29 @@ namespace GrappleGame
         private int grappleSpeed = 1;
 
         /// <summary>
+        /// sets the characters poosible conversations
+        /// </summary>
+        private List<string> Conversation;
+
+        /// <summary>
+        /// sets the characters current message from conversations
+        /// </summary>
+        private string currentConversation;
+
+        /// <summary>
+        /// sets the range the character can move from original starting position
+        /// </summary>
+        private Point range;
+
+        /// <summary>
         /// Contains the generic constants for the game
         /// </summary>
         Constants Constants = new Constants();
+
+        ///<summary>
+        ///Contains the UserInput Typing Class for the CharacterEditing
+        /// </summary>
+        UserInput input = new UserInput();
 
         /// <summary>
         /// The current walking image the dude is on. 
@@ -222,7 +246,7 @@ namespace GrappleGame
         /// <summary>
         /// indicates whether the dude has moved
         /// </summary>
-        public bool dudeMoved = false;
+        public bool charMoved = false;
 
         /// <summary>
         /// the unit vector that contains the direction the dude is facing
@@ -242,7 +266,7 @@ namespace GrappleGame
         /// <summary>
         /// Contains all textures, properties, variables pertaining the the user controlled character
         /// </summary>
-        /// <param name="newtilePosition">starting position of the dude on the map</param>
+        /// <param name="newtilePosition">starting position of the character on the map</param>
         /// <param name="newTexture">standing and walking textures</param>
         /// <param name="newAttack">attacking textures</param>
         /// <param name="newGrapple">grapple textures</param>
@@ -255,42 +279,9 @@ namespace GrappleGame
             grapple = Content.Load<Texture2D>("Characters/dude/Grapple2");
             shadow = Content.Load<Texture2D>("Characters/dude/dudeshadow");
             this.height = height;
+            Conversation = new List<string>();
+            range = new Point(5, 5);
         }
-
-        #region camera
-        /// <summary>
-        /// the viewport for the player to see the gameworld. This functions has the visible screen follow the dude with the dude being centered on the screen
-        /// </summary>
-        /// <param name="device">XNA variable keeping track of game window variables</param>
-        /// <param name="editor">detects whether editor mode is on. needed becuase the calculation to keep the dude centered on screen needs to be adjusted when editor mode is running</param>
-        public void CameraCalculation(GraphicsDevice device, bool editor)
-        {
-            float editorScreenAdjustment = 0;
-            if (editor)
-                editorScreenAdjustment = 100;
-            Viewport viewPort = device.Viewport;
-            transform = Matrix.CreateTranslation(new Vector3(-pixelPosition.X - (Constants.tilesize / 2), -pixelPosition.Y - (Constants.tilesize / 2), 0))
-                        * Matrix.CreateScale(new Vector3(zoom, zoom, 1))
-                        * Matrix.CreateTranslation(new Vector3(viewPort.Width * 0.5f - editorScreenAdjustment, viewPort.Height * 0.5f, 0));
-        }
-
-
-        private void CameraMagnification(KeyboardState keys)
-        {
-            if (keys.IsKeyDown(Keys.P))
-            {
-                zoom = zoom + 0.01f;
-                if (zoom >= 3f)
-                    zoom = 3f;
-            }
-            else
-            {
-                zoom = zoom - 0.01f;
-                if (zoom <= 0.1f)
-                    zoom = 0.1f;
-            }
-        }
-        #endregion
 
         /// <summary>
         /// Draws the dude
@@ -476,110 +467,134 @@ namespace GrappleGame
                     goto case Grapple.Hit;
             }
         }
-
-        #region DudeInput
+        //this is a useless comment delete if seen
+        #region CharacterInput
         /// <summary>
         /// Tracks user input of the game through the keyboard. Default control scheme
         /// </summary>
         /// <param name="keys">Tracks the current state of the keyboard</param>
-        public void UserInput(KeyboardState keys)
+        public void CharacterInput()
         {
-            if (keys.IsKeyDown(Keys.P)) //zoom in button, camera zooms in on map
-                CameraMagnification(keys);
-            if (keys.IsKeyDown(Keys.L)) //zoom out button, camera zooms out on map
-                CameraMagnification(keys);
-            if (currentActionState == ActionState.Standby)
+            if (currentCharacterEditing == CharacterEditing.Words)
             {
-                if (keys.IsKeyDown(Keys.Up))
-                {//face up
-                    currentFacingDirection = Direction.Up;
-                    setFacingDirectionConstants();
-                }
-                if (keys.IsKeyDown(Keys.Down))
-                {//face down
-                    currentFacingDirection = Direction.Down;
-                    setFacingDirectionConstants();
-                }
-                if (keys.IsKeyDown(Keys.Right))
-                {//face right
-                    currentFacingDirection = Direction.Right;
-                    setFacingDirectionConstants();
-                }
-                if (keys.IsKeyDown(Keys.Left))
-                {//face left
-                    currentFacingDirection = Direction.Left;
-                    setFacingDirectionConstants();
-                }
-                if (keys.IsKeyDown(Keys.LeftShift))
+                if (input.userinput())
                 {
-                    if (currentGrapple == Grapple.Static)
+                    if (input.text.EndsWith("\t"))
                     {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = currentFacingDirection;
-                        setMovingDirectionConstants();
-                        return;
+                        input.text.Remove(input.text.Length - 2, 2);
+                        input.text = "";
+                    }
+                    else
+                    {
+                        Conversation.Add(input.text);
+                        input.text = "";
                     }
                 }
+
+                currentConversation = input.text;
+            }
+            else if (currentCharacterEditing == CharacterEditing.Boundaries)
+            {
+                if (input.NumericalInput())
+                {
+                    range = new Point(Convert.ToInt32(input.text, 10), Convert.ToInt32(input.text, 10));
+                    input.text = "";
+                }
+            }
+            #region Old Dude Input Code
+            //if (currentActionState == ActionState.Standby)
+            //{
+            //    if (keys.IsKeyDown(Keys.Up))
+            //    {//face up
+            //        currentFacingDirection = Direction.Up;
+            //        setFacingDirectionConstants();
+            //    }
+            //    if (keys.IsKeyDown(Keys.Down))
+            //    {//face down
+            //        currentFacingDirection = Direction.Down;
+            //        setFacingDirectionConstants();
+            //    }
+            //    if (keys.IsKeyDown(Keys.Right))
+            //    {//face right
+            //        currentFacingDirection = Direction.Right;
+            //        setFacingDirectionConstants();
+            //    }
+            //    if (keys.IsKeyDown(Keys.Left))
+            //    {//face left
+            //        currentFacingDirection = Direction.Left;
+            //        setFacingDirectionConstants();
+            //    }
+            //    if (keys.IsKeyDown(Keys.LeftShift))
+            //    {
+            //        if (currentGrapple == Grapple.Static)
+            //        {
+            //            currentGrapple = Grapple.Starting;
+            //            currentMovingDirection = currentFacingDirection;
+            //            setMovingDirectionConstants();
+            //            return;
+            //        }
+            //    }
                 //if (keys.IsKeyDown(Keys.Space))
                 //{
                 //    currentAction = Action.Attacking;
                 //    currentActionState = ActionState.Starting;
                 //    return;
                 //}
-                if (keys.IsKeyDown(Keys.W))
-                {
-                    if (currentGrapple == Grapple.Static)
-                    {
-                        currentAction = Action.Walking;
-                        currentFacingDirection = Direction.Up;
-                        currentMovingDirection = Direction.Up;
-                        setFacingDirectionConstants();
-                        setMovingDirectionConstants();
-                        currentActionState = ActionState.Starting;
-                        return;
-                    }
-                }
-                if (keys.IsKeyDown(Keys.A))
-                {
-                    if (currentGrapple == Grapple.Static)
-                    {
-                        currentAction = Action.Walking;
-                        currentFacingDirection = Direction.Left;
-                        currentMovingDirection = Direction.Left;
-                        setFacingDirectionConstants();
-                        setMovingDirectionConstants();
-                        currentActionState = ActionState.Starting;
-                        return;
-                    }
-                }
-                if (keys.IsKeyDown(Keys.D))
-                {
-                    if (currentGrapple == Grapple.Static)
-                    {
-                        currentAction = Action.Walking;
-                        currentFacingDirection = Direction.Right;
-                        currentMovingDirection = Direction.Right;
-                        setFacingDirectionConstants();
-                        setMovingDirectionConstants();
-                        currentActionState = ActionState.Starting;
-                        return;
-                    }
-                }
-                if (keys.IsKeyDown(Keys.S))
-                {
-                    if (currentGrapple == Grapple.Static)
-                    {
-                        currentAction = Action.Walking;
-                        currentFacingDirection = Direction.Down;
-                        currentMovingDirection = Direction.Down;
-                        setFacingDirectionConstants();
-                        setMovingDirectionConstants();
-                        currentActionState = ActionState.Starting;
-                        return;
-                    }
-                }
-                
-            }
+                //if (keys.IsKeyDown(Keys.W))
+                //{
+                //    if (currentGrapple == Grapple.Static)
+                //    {
+                //        currentAction = Action.Walking;
+                //        currentFacingDirection = Direction.Up;
+                //        currentMovingDirection = Direction.Up;
+                //        setFacingDirectionConstants();
+                //        setMovingDirectionConstants();
+                //        currentActionState = ActionState.Starting;
+                //        return;
+                //    }
+                //}
+                //if (keys.IsKeyDown(Keys.A))
+                //{
+                //    if (currentGrapple == Grapple.Static)
+                //    {
+                //        currentAction = Action.Walking;
+                //        currentFacingDirection = Direction.Left;
+                //        currentMovingDirection = Direction.Left;
+                //        setFacingDirectionConstants();
+                //        setMovingDirectionConstants();
+                //        currentActionState = ActionState.Starting;
+                //        return;
+                //    }
+                //}
+                //if (keys.IsKeyDown(Keys.D))
+                //{
+                //    if (currentGrapple == Grapple.Static)
+                //    {
+                //        currentAction = Action.Walking;
+                //        currentFacingDirection = Direction.Right;
+                //        currentMovingDirection = Direction.Right;
+                //        setFacingDirectionConstants();
+                //        setMovingDirectionConstants();
+                //        currentActionState = ActionState.Starting;
+                //        return;
+                //    }
+                //}
+                //if (keys.IsKeyDown(Keys.S))
+                //{
+                //    if (currentGrapple == Grapple.Static)
+                //    {
+                //        currentAction = Action.Walking;
+                //        currentFacingDirection = Direction.Down;
+                //        currentMovingDirection = Direction.Down;
+                //        setFacingDirectionConstants();
+                //        setMovingDirectionConstants();
+                //        currentActionState = ActionState.Starting;
+                //        return;
+                //    }
+                //}
+
+            //}
+            #endregion
         }
 
         /// <summary>
@@ -638,95 +653,95 @@ namespace GrappleGame
         /// Tracks user input of the game through an xbox 360 controller
         /// </summary>
         /// <param name="gamePad1">keeps track of state of xbox 360 controller</param>
-        public void UserInput(GamePadState gamePad1)
-        {
-            if (currentActionState == ActionState.Standby)
-            {
-                Direction newDirection = currentFacingDirection;
-                if (gamePad1.ThumbSticks.Left.Y >= .5f && gamePad1.Triggers.Left >= .5f)
-                    newDirection = Direction.Up;
-                else if (gamePad1.ThumbSticks.Left.Y <= -.5f && gamePad1.Triggers.Left >= .5f)
-                    newDirection = Direction.Down;
-                else if (gamePad1.ThumbSticks.Left.X <= .5f && gamePad1.Triggers.Left >= .5f)
-                    newDirection = Direction.Right;
-                else if (gamePad1.ThumbSticks.Left.X >= -.5f && gamePad1.Triggers.Left >= .5f)
-                    newDirection = Direction.Left;
+        //public void UserInput(GamePadState gamePad1)
+        //{
+        //    if (currentActionState == ActionState.Standby)
+        //    {
+        //        Direction newDirection = currentFacingDirection;
+        //        if (gamePad1.ThumbSticks.Left.Y >= .5f && gamePad1.Triggers.Left >= .5f)
+        //            newDirection = Direction.Up;
+        //        else if (gamePad1.ThumbSticks.Left.Y <= -.5f && gamePad1.Triggers.Left >= .5f)
+        //            newDirection = Direction.Down;
+        //        else if (gamePad1.ThumbSticks.Left.X <= .5f && gamePad1.Triggers.Left >= .5f)
+        //            newDirection = Direction.Right;
+        //        else if (gamePad1.ThumbSticks.Left.X >= -.5f && gamePad1.Triggers.Left >= .5f)
+        //            newDirection = Direction.Left;
 
-                if (currentGrapple == Grapple.Static)
-                {
-                    if (gamePad1.ThumbSticks.Left.Y >= .5f && gamePad1.Triggers.Left <= .5f)
-                    {
-                        currentAction = Action.Walking;
-                        newDirection = Direction.Up;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.Y <= -.5f && gamePad1.Triggers.Left <= .5f)
-                    {
-                        currentAction = Action.Walking;
-                        newDirection = Direction.Down;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.X <= .5f && gamePad1.Triggers.Left <= .5f)
-                    {
-                        currentAction = Action.Walking;
-                        newDirection = Direction.Right;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.X >= -.5f && gamePad1.Triggers.Left <= .5f)
-                    {
-                        currentAction = Action.Walking;
-                        newDirection = Direction.Left;
-                    }
+        //        if (currentGrapple == Grapple.Static)
+        //        {
+        //            if (gamePad1.ThumbSticks.Left.Y >= .5f && gamePad1.Triggers.Left <= .5f)
+        //            {
+        //                currentAction = Action.Walking;
+        //                newDirection = Direction.Up;
+        //            }
+        //            else if (gamePad1.ThumbSticks.Left.Y <= -.5f && gamePad1.Triggers.Left <= .5f)
+        //            {
+        //                currentAction = Action.Walking;
+        //                newDirection = Direction.Down;
+        //            }
+        //            else if (gamePad1.ThumbSticks.Left.X <= .5f && gamePad1.Triggers.Left <= .5f)
+        //            {
+        //                currentAction = Action.Walking;
+        //                newDirection = Direction.Right;
+        //            }
+        //            else if (gamePad1.ThumbSticks.Left.X >= -.5f && gamePad1.Triggers.Left <= .5f)
+        //            {
+        //                currentAction = Action.Walking;
+        //                newDirection = Direction.Left;
+        //            }
 
 
-                    if (gamePad1.ThumbSticks.Left.Y >= .5f)
-                    {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = Direction.Up;
-                        setMovingDirectionConstants();
-                        newDirection = Direction.Up;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.Y <= -.5f)
-                    {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = Direction.Down;
-                        setMovingDirectionConstants();
-                        newDirection = Direction.Down;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.X <= .5f)
-                    {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = Direction.Right;
-                        setMovingDirectionConstants();
-                        newDirection = Direction.Right;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.X >= -.5f)
-                    {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = Direction.Left;
-                        setMovingDirectionConstants();
-                        newDirection = Direction.Left;
-                    }
-                }
-                //if (gamePad1.Buttons.A == ButtonState.Pressed)
-                //{
-                //    currentAction = Action.Attacking;
-                //}
+        //            if (gamePad1.ThumbSticks.Left.Y >= .5f)
+        //            {
+        //                currentGrapple = Grapple.Starting;
+        //                currentMovingDirection = Direction.Up;
+        //                setMovingDirectionConstants();
+        //                newDirection = Direction.Up;
+        //            }
+        //            else if (gamePad1.ThumbSticks.Left.Y <= -.5f)
+        //            {
+        //                currentGrapple = Grapple.Starting;
+        //                currentMovingDirection = Direction.Down;
+        //                setMovingDirectionConstants();
+        //                newDirection = Direction.Down;
+        //            }
+        //            else if (gamePad1.ThumbSticks.Left.X <= .5f)
+        //            {
+        //                currentGrapple = Grapple.Starting;
+        //                currentMovingDirection = Direction.Right;
+        //                setMovingDirectionConstants();
+        //                newDirection = Direction.Right;
+        //            }
+        //            else if (gamePad1.ThumbSticks.Left.X >= -.5f)
+        //            {
+        //                currentGrapple = Grapple.Starting;
+        //                currentMovingDirection = Direction.Left;
+        //                setMovingDirectionConstants();
+        //                newDirection = Direction.Left;
+        //            }
+        //        }
+        //        //if (gamePad1.Buttons.A == ButtonState.Pressed)
+        //        //{
+        //        //    currentAction = Action.Attacking;
+        //        //}
 
-                //Not yet implemented
-                //if (keys.IsKeyDown(Keys.RightControl))
-                //    currentAction = Action.Blocking;
+        //        //Not yet implemented
+        //        //if (keys.IsKeyDown(Keys.RightControl))
+        //        //    currentAction = Action.Blocking;
 
-                //if (keys.IsKeyDown(Keys.RightShift))
-                //    currentAction = Action.Jumping;
+        //        //if (keys.IsKeyDown(Keys.RightShift))
+        //        //    currentAction = Action.Jumping;
 
-                if (newDirection != currentFacingDirection || currentAction != Action.Standing)
-                {
-                    currentFacingDirection = newDirection;
-                    setFacingDirectionConstants();
-                }
-                if (currentAction != Action.Standing)
-                    currentActionState = ActionState.Starting;
-            }
-            //else call the queue function
-        }
+        //        if (newDirection != currentFacingDirection || currentAction != Action.Standing)
+        //        {
+        //            currentFacingDirection = newDirection;
+        //            setFacingDirectionConstants();
+        //        }
+        //        if (currentAction != Action.Standing)
+        //            currentActionState = ActionState.Starting;
+        //    }
+        //    //else call the queue function
+        //}
 
         /// <summary>
         /// Sets the variables that are dependent on where the dude is looking
@@ -842,6 +857,8 @@ namespace GrappleGame
             }
             if (currentGrapple != Grapple.Static)
                 updateGrappling(ref map);
+            if (currentCharacterEditing != CharacterEditing.None)
+                CharacterInput();
             updateVisiblity(ref map);
         }
         private void Falling(ref Map map)
@@ -989,7 +1006,7 @@ namespace GrappleGame
                     break;
                 case ActionState.Finishing:
                     pixelPosition = tilePosition * Constants.tilesize;//ensure dude fits directly on tilemap
-                    dudeMoved = true;
+                    charMoved = true;
                     goto case ActionState.Done;//go to last state                    
                 case ActionState.Done:
                     //call queue, if has prepicked input, go to that, else go to standby and standing action
@@ -1059,7 +1076,7 @@ namespace GrappleGame
                         }
                         if (pixelPosition == Constants.tilesize * tilePosition)
                         {
-                            dudeMoved = true;
+                            charMoved = true;
                             pixelPosition = tilePosition * Constants.tilesize;
                             grappleSize = 0;
                             if (map.tileData[(int)tilePosition.X, (int)tilePosition.Y].impassible == true)
@@ -1100,7 +1117,7 @@ namespace GrappleGame
                     goto case Grapple.Done;
                 case Grapple.Done:
                     //call queue, if has prepicked input, go to that, else go to standby and standing action
-                    dudeMoved = true;
+                    charMoved = true;
                     currentGrapple = Grapple.Static;
                     break;
             }
