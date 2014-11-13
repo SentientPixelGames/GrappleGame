@@ -1,0 +1,2 @@
+C:\Users\Michael K\Documents\GitHub\Tales_of_Tiberion\Tales-of-Tiberion\GrappleGame\GrappleGame\GrappleGameContent\obj\x86\Debug\GrappleGameContent.contentprojResolveAssemblyReference.cache
+C:\Users\Paul\Documents\GitHub\TalesofTiberion\Tales-of-Tiberion\GrappleGame\GrappleGame\GrappleGameContent\obj\x86\Debug\GrappleGameContent.contentprojResolveAssemblyReference.cache
