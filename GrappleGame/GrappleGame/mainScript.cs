@@ -236,7 +236,7 @@ namespace GrappleGame
         }
         protected override void LoadContent()
         {
-            theDude = new Dude(new Vector2(9, 4), -1, Content);
+            theDude = new Dude(new Vector2(36, 4), -1, Content);
             MapName = Load_SaveMapNames.LoadMapNames();
             Maps = new List<Map>();
             foreach (string[] temp in MapName)

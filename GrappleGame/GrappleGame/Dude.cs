@@ -654,88 +654,128 @@ namespace GrappleGame
         {
             if (currentActionState == ActionState.Standby)
             {
-                Direction newDirection = currentFacingDirection;
                 if (gamePad1.ThumbSticks.Left.Y >= .5f && gamePad1.Triggers.Left >= .5f)
-                    newDirection = Direction.Up;
-                else if (gamePad1.ThumbSticks.Left.Y <= -.5f && gamePad1.Triggers.Left >= .5f)
-                    newDirection = Direction.Down;
-                else if (gamePad1.ThumbSticks.Left.X <= .5f && gamePad1.Triggers.Left >= .5f)
-                    newDirection = Direction.Right;
-                else if (gamePad1.ThumbSticks.Left.X >= -.5f && gamePad1.Triggers.Left >= .5f)
-                    newDirection = Direction.Left;
-
-                if (currentGrapple == Grapple.Static)
                 {
-                    if (gamePad1.ThumbSticks.Left.Y >= .5f && gamePad1.Triggers.Left <= .5f)
-                    {
-                        currentAction = Action.Walking;
-                        newDirection = Direction.Up;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.Y <= -.5f && gamePad1.Triggers.Left <= .5f)
-                    {
-                        currentAction = Action.Walking;
-                        newDirection = Direction.Down;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.X <= .5f && gamePad1.Triggers.Left <= .5f)
-                    {
-                        currentAction = Action.Walking;
-                        newDirection = Direction.Right;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.X >= -.5f && gamePad1.Triggers.Left <= .5f)
-                    {
-                        currentAction = Action.Walking;
-                        newDirection = Direction.Left;
-                    }
-
-
-                    if (gamePad1.ThumbSticks.Left.Y >= .5f)
-                    {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = Direction.Up;
-                        setMovingDirectionConstants();
-                        newDirection = Direction.Up;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.Y <= -.5f)
-                    {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = Direction.Down;
-                        setMovingDirectionConstants();
-                        newDirection = Direction.Down;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.X <= .5f)
-                    {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = Direction.Right;
-                        setMovingDirectionConstants();
-                        newDirection = Direction.Right;
-                    }
-                    else if (gamePad1.ThumbSticks.Left.X >= -.5f)
-                    {
-                        currentGrapple = Grapple.Starting;
-                        currentMovingDirection = Direction.Left;
-                        setMovingDirectionConstants();
-                        newDirection = Direction.Left;
-                    }
-                }
-                //if (gamePad1.Buttons.A == ButtonState.Pressed)
-                //{
-                //    currentAction = Action.Attacking;
-                //}
-
-                //Not yet implemented
-                //if (keys.IsKeyDown(Keys.RightControl))
-                //    currentAction = Action.Blocking;
-
-                //if (keys.IsKeyDown(Keys.RightShift))
-                //    currentAction = Action.Jumping;
-
-                if (newDirection != currentFacingDirection || currentAction != Action.Standing)
-                {
-                    currentFacingDirection = newDirection;
+                    currentFacingDirection = Direction.Up;
                     setFacingDirectionConstants();
                 }
-                if (currentAction != Action.Standing)
-                    currentActionState = ActionState.Starting;
+                else if (gamePad1.ThumbSticks.Left.Y <= -.5f && gamePad1.Triggers.Left >= .5f)
+                {
+                    currentFacingDirection = Direction.Down;
+                    setFacingDirectionConstants();
+                }
+                else if (gamePad1.ThumbSticks.Left.X >= .5f && gamePad1.Triggers.Left >= .5f)
+                {
+                    currentFacingDirection = Direction.Right;
+                    setFacingDirectionConstants();
+                }
+                else if (gamePad1.ThumbSticks.Left.X <= -.5f && gamePad1.Triggers.Left >= .5f)
+                {
+                    currentFacingDirection = Direction.Left;
+                    setFacingDirectionConstants();
+                }
+                if (gamePad1.ThumbSticks.Left.Y >= .5f && gamePad1.Triggers.Left <= .5f)
+                {
+                    if (currentGrapple == Grapple.Static)
+                    {
+                        currentAction = Action.Walking;
+                        currentFacingDirection = Direction.Up;
+                        currentMovingDirection = Direction.Up;
+                        setFacingDirectionConstants();
+                        setMovingDirectionConstants();
+                        currentActionState = ActionState.Starting;
+                        return;
+                    }
+                }
+                else if (gamePad1.ThumbSticks.Left.Y <= -.5f && gamePad1.Triggers.Left <= .5f)
+                {
+                    if (currentGrapple == Grapple.Static)
+                    {
+                        currentAction = Action.Walking;
+                        currentFacingDirection = Direction.Down;
+                        currentMovingDirection = Direction.Down;
+                        setFacingDirectionConstants();
+                        setMovingDirectionConstants();
+                        currentActionState = ActionState.Starting;
+                        return;
+                    }
+                }
+                else if (gamePad1.ThumbSticks.Left.X >= .5f && gamePad1.Triggers.Left <= .5f)
+                {
+                    if (currentGrapple == Grapple.Static)
+                    {
+                        currentAction = Action.Walking;
+                        currentFacingDirection = Direction.Right;
+                        currentMovingDirection = Direction.Right;
+                        setFacingDirectionConstants();
+                        setMovingDirectionConstants();
+                        currentActionState = ActionState.Starting;
+                        return;
+                    }
+                }
+                else if (gamePad1.ThumbSticks.Left.X <= -.5f && gamePad1.Triggers.Left <= .5f)
+                {
+                    if (currentGrapple == Grapple.Static)
+                    {
+                        currentAction = Action.Walking;
+                        currentFacingDirection = Direction.Left;
+                        currentMovingDirection = Direction.Left;
+                        setFacingDirectionConstants();
+                        setMovingDirectionConstants();
+                        currentActionState = ActionState.Starting;
+                        return;
+                    }
+                }
+
+
+                if (gamePad1.ThumbSticks.Right.Y >= .5f)
+                {
+                    if (currentGrapple == Grapple.Static)
+                    {
+                        currentGrapple = Grapple.Starting;
+                        currentFacingDirection = Direction.Up;
+                        currentMovingDirection = Direction.Up;
+                        setFacingDirectionConstants();
+                        setMovingDirectionConstants();
+                        return;
+                    }
+                }
+                else if (gamePad1.ThumbSticks.Right.Y <= -.5f)
+                {
+                    if (currentGrapple == Grapple.Static)
+                    {
+                        currentGrapple = Grapple.Starting;
+                        currentFacingDirection = Direction.Down;
+                        currentMovingDirection = Direction.Down;
+                        setFacingDirectionConstants();
+                        setMovingDirectionConstants();
+                        return;
+                    }
+                }
+                else if (gamePad1.ThumbSticks.Right.X >= .5f)
+                {
+                    if (currentGrapple == Grapple.Static)
+                    {
+                        currentGrapple = Grapple.Starting;
+                        currentFacingDirection = Direction.Right;
+                        currentMovingDirection = Direction.Right;
+                        setFacingDirectionConstants();
+                        setMovingDirectionConstants();
+                        return;
+                    }
+                }
+                else if (gamePad1.ThumbSticks.Right.X <= -.5f)
+                {
+                    if (currentGrapple == Grapple.Static)
+                    {
+                        currentGrapple = Grapple.Starting;
+                        currentFacingDirection = Direction.Left;
+                        currentMovingDirection = Direction.Left;
+                        setFacingDirectionConstants();
+                        setMovingDirectionConstants();
+                        return;
+                    }
+                }
             }
             //else call the queue function
         }
