@@ -36,14 +36,6 @@ namespace GrappleGame
         public int WindowY;
         private float Egt;
         SpriteFont font;
-
-        private int[] impassableTiles = new int[70] {2, 1, 8, 9, 10, 11, 14, 15, 16, 18, 24, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
-                                             53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 68
-                                            , 70, 72, 74, 78, 79, 81, 82, 83, 84, 97, 98, 99, 100, 101, 102, 103, 104, 105, 
-                                            106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122};
-        private int[] grappableTiles = new int[44] {1, 14, 15, 16, 18, 24, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-                                            60, 61, 62, 63, 64, 66, 68, 74, 78, 79, 81, 82, 83, 84, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106,107, 108, 109, 122};
-
         public enum EditorState
         {
             Tiles,
@@ -52,13 +44,18 @@ namespace GrappleGame
             Maps,
             Edit,
             Transport,
-            entities,
+            Objects,
         }
         public enum Edit
         {
-            Grappable,
             Height,
             Impassible,
+            ObjectDepth_Main,
+            ObjectDepth_Secondary,
+            ObjectHeight,
+            Solid,
+            Shadow,
+            TileDepth,
             Off,
         }
         public EditorState currentEditorState = EditorState.Tiles;
@@ -108,10 +105,10 @@ namespace GrappleGame
             EnteringSizes = typing.userinput();            
             return EnteringSizes;
         }
-        public Map createMap(Map currentMap, Editor editor, Dude theDude, ContentManager Content, Texture2D[] tiles, Texture2D[] entity)
+        public Map createMap(Map currentMap, Editor editor, Dude theDude, ContentManager Content, Tile[] tiles, Object[] objects)
         {
             NumericalInput typing = new NumericalInput();
-            Map Mappy = new Map(editor, theDude, Content, currentMap.GetMapName, tiles, entity);
+            Map Mappy = new Map(editor, theDude, Content, currentMap.GetMapName, tiles, objects);
             if (CreateNewMap)
             {
                 string newmapname = currentMap.GetMapName;
@@ -122,7 +119,7 @@ namespace GrappleGame
                 sizeY = Convert.ToInt32(SizeY);
                 currentMap.CreateNewMap(sizeX, sizeY, 0, newmapname);
                 currentMap.smallmapCount++;
-                Mappy = new Map(editor, theDude, Content, newmapname, tiles, entity);
+                Mappy = new Map(editor, theDude, Content, newmapname, tiles, objects);
             }
             if (RedoCurrentMap)
             {
@@ -130,7 +127,7 @@ namespace GrappleGame
                 sizeX = Convert.ToInt32(SizeX);
                 sizeY = Convert.ToInt32(SizeY);
                 currentMap.CreateNewMap(sizeX, sizeY, 0, currentMap.GetMapName);
-                Mappy = new Map(editor, theDude, Content, currentMap.GetMapName, tiles, entity);
+                Mappy = new Map(editor, theDude, Content, currentMap.GetMapName, tiles, objects);
             }
             return Mappy;
         }
@@ -254,7 +251,7 @@ namespace GrappleGame
                 {
                     if (mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 95 && mousey.X < graphics.Viewport.Width - 5 && mousey.Y > 50 && mousey.Y < 82)
                     {
-                        currentEditorState = EditorState.entities;
+                        currentEditorState = EditorState.Objects;
                     }
                     if (pagenumber == 1)
                     {
@@ -280,7 +277,7 @@ namespace GrappleGame
                         {
                             for (int k = 90; k <= 610; k = k + 40)
                             {
-                                if (p < 124 && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - j && mousey.X < graphics.Viewport.Width - j + 32 && mousey.Y > k && mousey.Y < k + 40)
+                                if (p < 93 && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - j && mousey.X < graphics.Viewport.Width - j + 32 && mousey.Y > k && mousey.Y < k + 40)
                                 {
                                     i = 1;
                                     DrawingAble = true;
@@ -297,7 +294,7 @@ namespace GrappleGame
                         {
                             for (int k = 90; k <= 610; k = k + 40)
                             {
-                                if (p < 123 && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - j && mousey.X < graphics.Viewport.Width - j + 32 && mousey.Y > k && mousey.Y < k + 40)
+                                if (p < 93 && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - j && mousey.X < graphics.Viewport.Width - j + 32 && mousey.Y > k && mousey.Y < k + 40)
                                 {
                                     i = 1;
                                     DrawingAble = true;
@@ -308,7 +305,7 @@ namespace GrappleGame
                         }
                     }
                 }
-                else if (currentEditorState == EditorState.entities)
+                else if (currentEditorState == EditorState.Objects)
                 {
                     if (mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 195 && mousey.X < graphics.Viewport.Width - 105 && mousey.Y > 50 && mousey.Y < 82)
                     {
@@ -321,7 +318,7 @@ namespace GrappleGame
                         {
                             for (int k = 90; k <= 610; k = k + 40)
                             {
-                                if (p < 8 && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - j && mousey.X < graphics.Viewport.Width - j + 32 && mousey.Y > k && mousey.Y < k + 40)
+                                if (p < 17 && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - j && mousey.X < graphics.Viewport.Width - j + 32 && mousey.Y > k && mousey.Y < k + 40)
                                 {
                                     i = 1;
                                     DrawingAble = true;
@@ -334,12 +331,22 @@ namespace GrappleGame
                 }
                 else if (currentEditorState == EditorState.Edit)
                 {
-                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 200 && mousey.Y < 225)
+                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 150 && mousey.Y < 175)
                         currentEdittingState = Edit.Height;
-                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 250 && mousey.Y < 275)
+                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 180 && mousey.Y < 205)
                         currentEdittingState = Edit.Impassible;
+                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 210 && mousey.Y < 235)
+                        currentEdittingState = Edit.ObjectDepth_Main;
+                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 240 && mousey.Y < 265)
+                        currentEdittingState = Edit.ObjectDepth_Secondary;
+                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 270 && mousey.Y < 295)
+                        currentEdittingState = Edit.ObjectHeight;
                     if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 300 && mousey.Y < 325)
-                        currentEdittingState = Edit.Grappable;
+                        currentEdittingState = Edit.Shadow;
+                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 330 && mousey.Y < 355)
+                        currentEdittingState = Edit.Solid;
+                    if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 190 && mousey.X < graphics.Viewport.Width - 65 && mousey.Y > 360 && mousey.Y < 385)
+                        currentEdittingState = Edit.TileDepth;
                     if (mouseisclicked == false && mousey.LeftButton == ButtonState.Pressed && mousey.X > graphics.Viewport.Width - 175 && mousey.X < graphics.Viewport.Width - 143 && mousey.Y > 50 && mousey.Y < 82)
                     {
                         DrawingAble = true;
@@ -454,7 +461,7 @@ namespace GrappleGame
                 }
             }
         }
-        public void DrawEditorMode(SpriteBatch spriteBatch, Texture2D[] tile, GraphicsDevice GraphicsDevice, int TileSize, SpriteFont font, Texture2D whiteBox, Texture2D[] charactersprites, Map currentMap, Texture2D[] entities)
+        public void DrawEditorMode(SpriteBatch spriteBatch, Tile[] tiles, GraphicsDevice GraphicsDevice, int TileSize, SpriteFont font, Texture2D whiteBox, Texture2D[] charactersprites, Map currentMap, Object[] objects)
         {
             if (editorOn == true)
             {
@@ -474,7 +481,8 @@ namespace GrappleGame
                         {
                             for (int k = 90; k <= 610; k = k + 40)
                             {
-                                spriteBatch.Draw(tile[p], new Rectangle(GraphicsDevice.Viewport.Width - j, k, TileSize, TileSize), Color.White);
+                                if (p < tiles.Length)
+                                    spriteBatch.Draw(tiles[p].texture, new Rectangle(GraphicsDevice.Viewport.Width - j, k, TileSize, TileSize), Color.White);
                                 p++;
                             }
                         }
@@ -486,14 +494,14 @@ namespace GrappleGame
                         {
                             for (int k = 90; k <= 610; k = k + 40)
                             {
-                                if (p < 124)
-                                    spriteBatch.Draw(tile[p], new Rectangle(GraphicsDevice.Viewport.Width - j, k, TileSize, TileSize), Color.White);
+                                if (p < tiles.Length)
+                                    spriteBatch.Draw(tiles[p].texture, new Rectangle(GraphicsDevice.Viewport.Width - j, k, TileSize, TileSize), Color.White);
                                 p++;
                             }
                         }
                     }
                 }
-                else if (currentEditorState == EditorState.entities)
+                else if (currentEditorState == EditorState.Objects)
                 {
                     spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 195, 55, 90, 32), Color.White);
                     spriteBatch.DrawString(font, "Tiles", new Vector2(GraphicsDevice.Viewport.Width - 180, 55), Color.Black);
@@ -506,8 +514,12 @@ namespace GrappleGame
                         {
                             for (int k = 90; k <= 610; k = k + 40)
                             {
-                                if(p < entities.Length)
-                                    spriteBatch.Draw(entities[p], new Rectangle(GraphicsDevice.Viewport.Width - j, k, TileSize, TileSize), Color.White);
+                                if (p < objects.Length)
+                                {
+                                    if (objects[p].advancedTexture != null)
+                                        spriteBatch.Draw(objects[p].advancedTexture, new Rectangle(GraphicsDevice.Viewport.Width - j, k, TileSize, TileSize), Color.White);
+                                    spriteBatch.Draw(objects[p].basicTexture, new Rectangle(GraphicsDevice.Viewport.Width - j, k, TileSize, TileSize), Color.White);
+                                }
                                 p++;
                             }
                         }
@@ -521,34 +533,85 @@ namespace GrappleGame
 
                     if (currentEdittingState == Edit.Height)
                     {
-                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 200, 125, 25), Color.Black);
-                        spriteBatch.DrawString(font, "Height", new Vector2(GraphicsDevice.Viewport.Width - 190, 200), Color.White);
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 150, 125, 25), Color.Black);
+                        spriteBatch.DrawString(font, "Height", new Vector2(GraphicsDevice.Viewport.Width - 190, 150), Color.White);
                     }
                     else
                     {
-                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 200, 125, 25), Color.White);
-                        spriteBatch.DrawString(font, "Height", new Vector2(GraphicsDevice.Viewport.Width - 190, 200), Color.Black);
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 150, 125, 25), Color.White);
+                        spriteBatch.DrawString(font, "Height", new Vector2(GraphicsDevice.Viewport.Width - 190, 150), Color.Black);
                     }
                     if (currentEdittingState == Edit.Impassible)
                     {
-                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 250, 125, 25), Color.Black);
-                        spriteBatch.DrawString(font, "Impassible", new Vector2(GraphicsDevice.Viewport.Width - 190, 250), Color.White);
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 180, 125, 25), Color.Black);
+                        spriteBatch.DrawString(font, "Impassible", new Vector2(GraphicsDevice.Viewport.Width - 190, 180), Color.White);
                     }
                     else
                     {
-                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 250, 125, 25), Color.White);
-                        spriteBatch.DrawString(font, "Impassible", new Vector2(GraphicsDevice.Viewport.Width - 190, 250), Color.Black);
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 180, 125, 25), Color.White);
+                        spriteBatch.DrawString(font, "Impassible", new Vector2(GraphicsDevice.Viewport.Width - 190, 180), Color.Black);
                     }
-                    if (currentEdittingState == Edit.Grappable)
+                    if (currentEdittingState == Edit.ObjectDepth_Main)
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 210, 125, 25), Color.Black);
+                        spriteBatch.DrawString(font, "MainDepth", new Vector2(GraphicsDevice.Viewport.Width - 190, 210), Color.White);
+                    }
+                    else
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 210, 125, 25), Color.White);
+                        spriteBatch.DrawString(font, "MainDepth", new Vector2(GraphicsDevice.Viewport.Width - 190, 210), Color.Black);
+                    }
+                    if (currentEdittingState == Edit.ObjectDepth_Secondary)
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 240, 125, 25), Color.Black);
+                        spriteBatch.DrawString(font, "SecondDepth", new Vector2(GraphicsDevice.Viewport.Width - 190, 240), Color.White);
+                    }
+                    else
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 240, 125, 25), Color.White);
+                        spriteBatch.DrawString(font, "SecondDepth", new Vector2(GraphicsDevice.Viewport.Width - 190, 240), Color.Black);
+                    }
+                    if (currentEdittingState == Edit.ObjectHeight)
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 270, 125, 25), Color.Black);
+                        spriteBatch.DrawString(font, "Object Height", new Vector2(GraphicsDevice.Viewport.Width - 190, 270), Color.White);
+                    }
+                    else
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 270, 125, 25), Color.White);
+                        spriteBatch.DrawString(font, "Object Height", new Vector2(GraphicsDevice.Viewport.Width - 190, 270), Color.Black);
+                    }
+                    if (currentEdittingState == Edit.Shadow)
                     {
                         spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 300, 125, 25), Color.Black);
-                        spriteBatch.DrawString(font, "Grappable", new Vector2(GraphicsDevice.Viewport.Width - 190, 300), Color.White);
+                        spriteBatch.DrawString(font, "Shadow", new Vector2(GraphicsDevice.Viewport.Width - 190, 300), Color.White);
                     }
                     else
                     {
                         spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 300, 125, 25), Color.White);
-                        spriteBatch.DrawString(font, "Grappable", new Vector2(GraphicsDevice.Viewport.Width - 190, 300), Color.Black);
+                        spriteBatch.DrawString(font, "Shadow", new Vector2(GraphicsDevice.Viewport.Width - 190, 300), Color.Black);
                     }
+                    if (currentEdittingState == Edit.Solid)
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 330, 125, 25), Color.Black);
+                        spriteBatch.DrawString(font, "Solid", new Vector2(GraphicsDevice.Viewport.Width - 190, 330), Color.White);
+                    }
+                    else
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 330, 125, 25), Color.White);
+                        spriteBatch.DrawString(font, "Solid", new Vector2(GraphicsDevice.Viewport.Width - 190, 330), Color.Black);
+                    }
+                    if (currentEdittingState == Edit.TileDepth)
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 360, 125, 25), Color.Black);
+                        spriteBatch.DrawString(font, "TileDepth", new Vector2(GraphicsDevice.Viewport.Width - 190, 360), Color.White);
+                    }
+                    else
+                    {
+                        spriteBatch.Draw(canvas, new Rectangle(GraphicsDevice.Viewport.Width - 190, 360, 125, 25), Color.White);
+                        spriteBatch.DrawString(font, "TileDepth", new Vector2(GraphicsDevice.Viewport.Width - 190, 360), Color.Black);
+                    }
+
                 }
                 else if (currentEditorState == EditorState.Characters)
                 {
@@ -663,26 +726,6 @@ namespace GrappleGame
 
 
         }
-        public int impassibleCheck(int tilenumber)
-        {
-            foreach (int impassibleNumber in impassableTiles)
-            {
-                if (tilenumber == impassibleNumber)
-                    return 1;
-            }
-            return 0;
-        }
-        public int grappableCheck(int tilenumber)
-        {
-            foreach (int grappableNumber in grappableTiles)
-            {
-                if (tilenumber == grappableNumber)
-                    return 1;
-            }
-            return 0;
-        }
-        
-
     }
     class NumericalInput
     {

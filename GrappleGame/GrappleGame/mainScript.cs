@@ -18,11 +18,9 @@ namespace GrappleGame
         SpriteBatch spriteBatch;
         Dude theDude; //stores all variables, data, movement, camerawork associated with the dude
         Editor editor; //storese all calculations and drawings associated with editor mode
-        Texture2D[] tile = new Texture2D[124]; //secondary storage of each tile texture
-        Texture2D[] entities = new Texture2D[8];
         Texture2D[] charactersprites = new Texture2D[3];
-        //string[] characternames = new string[1];
-        //List<Character> characterlist = new List<Character>();
+        Tile[] tiles = new Tile[93];
+        Object[] objects = new Object[17];
         Texture2D map; //blank image for map
         SpriteFont font;
         KeyboardState keys;
@@ -55,156 +53,121 @@ namespace GrappleGame
         protected override void Initialize()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);// put this in initialize, it was one of the errors that possibly caused the graphics problem in deep space on ice dogs computer        
-            #region tile textures
+            #region tiles
             #region Tiles 0- 9
-            tile[0] = Content.Load<Texture2D>("Tiles/main/grass");
-            tile[1] = Content.Load<Texture2D>("treetile");
-            tile[2] = Content.Load<Texture2D>("Tiles/main/watertile");
-            tile[3] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile");
-            tile[4] = Content.Load<Texture2D>("Tiles/main/cavefloortile");
-            tile[5] = Content.Load<Texture2D>("Tiles/grass&sand/gstile");
-            tile[6] = Content.Load<Texture2D>("Tiles/main/stile");
-            tile[7] = Content.Load<Texture2D>("Tiles/main/dtile");
-            tile[8] = Content.Load<Texture2D>("Tiles/water&sand/wstiletrans");
-            tile[9] = Content.Load<Texture2D>("Tiles/water&sand/wstiletransbot");
+            tiles[0] = new Tile(0, Content.Load<Texture2D>("Tiles/main/grass"), false, "green");
+            tiles[1] = new Tile(1, Content.Load<Texture2D>("Tiles/main/watertile"), true, "blue");
+            tiles[2] = new Tile(2, Content.Load<Texture2D>("Tiles/Castle/castlefloortile"), false, "gray");
+            tiles[3] = new Tile(3, Content.Load<Texture2D>("Tiles/main/cavefloortile"), false, "brown");
+            tiles[4] = new Tile(4, Content.Load<Texture2D>("Tiles/grass&sand/gstile"), false, "yellow");
+            tiles[5] = new Tile(5, Content.Load<Texture2D>("Tiles/main/stile"), false, "white");
+            tiles[6] = new Tile(6, Content.Load<Texture2D>("Tiles/main/dtile"), false, "yellow");
+            tiles[7] = new Tile(7, Content.Load<Texture2D>("Tiles/water&sand/wstiletrans"), true, "blue");
+            tiles[8] = new Tile(8, Content.Load<Texture2D>("Tiles/water&sand/wstiletransbot"), true, "blue");
+            tiles[9] = new Tile(9, Content.Load<Texture2D>("Tiles/water&sand/wstiletransright"), true, "blue");
             #endregion
             #region Tiles 10-19
-            tile[10] = Content.Load<Texture2D>("Tiles/water&sand/wstiletransright");
-            tile[11] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranstop");
-            tile[12] = Content.Load<Texture2D>("Tiles/grass&sand/gScornertile");
-            tile[13] = Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass");
-            tile[14] = Content.Load<Texture2D>("bigtreebottomtile");
-            tile[15] = Content.Load<Texture2D>("bigtreetoptile");
-            tile[16] = Content.Load<Texture2D>("bushtile");
-            tile[17] = Content.Load<Texture2D>("Tiles/main/blueflowertile");
-            tile[18] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile2");
-            tile[19] = Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1tile");
+            tiles[10] = new Tile(10, Content.Load<Texture2D>("Tiles/water&sand/wstiletranstop"), true, "blue");
+            tiles[11] = new Tile(11, Content.Load<Texture2D>("Tiles/grass&sand/gScornertile"), false, "yellow");
+            tiles[12] = new Tile(12, Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass"), false, "yellow");
+            tiles[13] = new Tile(13, Content.Load<Texture2D>("Tiles/main/blueflowertile"), false, "green");
+            tiles[14] = new Tile(14, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1tile"), false, "white");
+            tiles[15] = new Tile(15, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner2tile"), false, "white");
+            tiles[16] = new Tile(16, Content.Load<Texture2D>("Tiles/main/forestpathtile"), false, "white");
+            tiles[17] = new Tile(17, Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile"), false, "white");
+            tiles[18] = new Tile(18, Content.Load<Texture2D>("Tiles/main/purpleflowertile"), false, "green");
+            tiles[19] = new Tile(19, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner2-1tile"), false, "white");
             #endregion
             #region Tiles 20-29
-            tile[20] = Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner2tile");
-            tile[21] = Content.Load<Texture2D>("Tiles/main/forestpathtile");
-            tile[22] = Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile");
-            tile[23] = Content.Load<Texture2D>("Tiles/main/purpleflowertile");
-            tile[24] = Content.Load<Texture2D>("rosebushtile");
-            tile[25] = Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner2-1tile");
-            tile[26] = Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner2-2tile");
-            tile[27] = Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner2-3tile");
-            tile[28] = Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1-1tile");
-            tile[29] = Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1-2tile");
+            tiles[20] = new Tile(20, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner2-2tile"), false, "white");
+            tiles[21] = new Tile(21, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner2-3tile"), false, "white");
+            tiles[22] = new Tile(22, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1-1tile"), false, "white");
+            tiles[23] = new Tile(23, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1-2tile"), false, "white");
+            tiles[24] = new Tile(24, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1-3tile"), false, "white");
+            tiles[25] = new Tile(25, Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-1"), false, "yellow");
+            tiles[26] = new Tile(26, Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-2"), false, "yellow");
+            tiles[27] = new Tile(27, Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-3"), false, "yellow");
+            tiles[28] = new Tile(28, Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile-1"), false, "white");
+            tiles[29] = new Tile(29, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1-3tile"), false, "white");
             #endregion
             #region Tiles 30-39
-            tile[30] = Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1-3tile");
-            tile[31] = Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-1");
-            tile[32] = Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-2");
-            tile[33] = Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-3");
-            tile[34] = Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile-1");
-            tile[35] = Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile-2");
-            tile[36] = Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile-3");
-            tile[37] = Content.Load<Texture2D>("Tiles/grass&sand/gstile-1");
-            tile[38] = Content.Load<Texture2D>("Tiles/grass&sand/gstile-2");
-            tile[39] = Content.Load<Texture2D>("Tiles/grass&sand/gstile-3");
+            tiles[30] = new Tile(30, Content.Load<Texture2D>("Tiles/path&grass/forestpathcorner1-3tile"), false, "white");
+            tiles[31] = new Tile(31, Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-1"), false, "yellow");
+            tiles[32] = new Tile(32, Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-2"), false, "yellow");
+            tiles[33] = new Tile(33, Content.Load<Texture2D>("Tiles/grass&sand/GscornertileGrass-3"), false, "yellow");
+            tiles[34] = new Tile(34, Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile-1"), false, "white");
+            tiles[35] = new Tile(35, Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile-2"), false, "white");
+            tiles[36] = new Tile(36, Content.Load<Texture2D>("Tiles/path&grass/grassforestpathtile-3"), false, "white");
+            tiles[37] = new Tile(37, Content.Load<Texture2D>("Tiles/grass&sand/gstile-1"), false, "yellow");
+            tiles[38] = new Tile(38, Content.Load<Texture2D>("Tiles/grass&sand/gstile-2"), false, "yellow");
+            tiles[39] = new Tile(39, Content.Load<Texture2D>("Tiles/grass&sand/gstile-3"), false, "yellow");
             #endregion
             #region Tiles 40-49
-            tile[40] = Content.Load<Texture2D>("Tiles/grass&sand/gScornertile-1");
-            tile[41] = Content.Load<Texture2D>("Tiles/grass&sand/gScornertile-2");
-            tile[42] = Content.Load<Texture2D>("Tiles/grass&sand/gScornertile-3");
-            tile[43] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner1");
-            tile[44] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner11");
-            tile[45] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner12");
-            tile[46] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner13");
-            tile[47] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner2");
-            tile[48] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner21");
-            tile[49] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner22");
+            tiles[40] = new Tile(40, Content.Load<Texture2D>("Tiles/grass&sand/gScornertile-1"), false, "yellow");
+            tiles[41] = new Tile(41, Content.Load<Texture2D>("Tiles/grass&sand/gScornertile-2"), false, "yellow");
+            tiles[42] = new Tile(42, Content.Load<Texture2D>("Tiles/grass&sand/gScornertile-3"), false, "yellow");
+            tiles[43] = new Tile(43, Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner1"), true, "blue");
+            tiles[44] = new Tile(44, Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner11"), true, "blue");
+            tiles[45] = new Tile(45, Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner12"), true, "blue");
+            tiles[46] = new Tile(46, Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner13"), true, "blue");
+            tiles[47] = new Tile(47, Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner2"), true, "blue");
+            tiles[48] = new Tile(48, Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner21"), true, "blue");
+            tiles[49] = new Tile(49, Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner22"), true, "blue");
             #endregion
             #region Tiles 50-59
-            tile[50] = Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner23");
-            tile[51] = Content.Load<Texture2D>("stump");
-            tile[52] = Content.Load<Texture2D>("boudler");
-            tile[53] = Content.Load<Texture2D>("houseside");
-            tile[54] = Content.Load<Texture2D>("housedoor");
-            tile[55] = Content.Load<Texture2D>("housewindow");
-            tile[56] = Content.Load<Texture2D>("ruralrooftile");
-            tile[57] = Content.Load<Texture2D>("ruralrooftiletrans");
-            tile[58] = Content.Load<Texture2D>("ruralrooftile2");
-            tile[59] = Content.Load<Texture2D>("ruralrooftile3");
+            tiles[50] = new Tile(50, Content.Load<Texture2D>("Tiles/water&sand/wstiletranscorner23"), true, "blue");
+            tiles[51] = new Tile(51, Content.Load<Texture2D>("Tiles/mountain/mountain"), false, "brown");
+            tiles[52] = new Tile(52, Content.Load<Texture2D>("Tiles/mountain/mountain3"), true, "brown");
+            tiles[53] = new Tile(53, Content.Load<Texture2D>("Tiles/mountain/mountain2"), false, "brown");
+            tiles[54] = new Tile(54, Content.Load<Texture2D>("Tiles/mountain/mountainopening"), false, "brown");
+            tiles[55] = new Tile(55, Content.Load<Texture2D>("Tiles/Dock/dockhoriz"), false, "white");
+            tiles[56] = new Tile(56, Content.Load<Texture2D>("Tiles/Dock/dockpost"), true, "white");
+            tiles[57] = new Tile(57, Content.Load<Texture2D>("Tiles/Dock/dockvert"), false, "white");
+            tiles[58] = new Tile(58, Content.Load<Texture2D>("Tiles/mountain/mountain4"), true, "brown");
+            tiles[59] = new Tile(59, Content.Load<Texture2D>("Tiles/mountain/mountain5"), false, "brown");
             #endregion
             #region Tiles 60-69
-            tile[60] = Content.Load<Texture2D>("ruralrooftile4");
-            tile[61] = Content.Load<Texture2D>("ruralrooftiletrans2");
-            tile[62] = Content.Load<Texture2D>("ruralrooftile5");
-            tile[63] = Content.Load<Texture2D>("ruralrooftile6");
-            tile[64] = Content.Load<Texture2D>("ruralrooftiletrans3");
-            tile[65] = Content.Load<Texture2D>("Tiles/mountain/mountain");
-            tile[66] = Content.Load<Texture2D>("Tiles/mountain/mountain3");
-            tile[67] = Content.Load<Texture2D>("Tiles/mountain/mountain2");
-            tile[68] = Content.Load<Texture2D>("Tiles/mountain/mountainopening");
-            tile[69] = Content.Load<Texture2D>("Tiles/Dock/dockhoriz");
+            tiles[60] = new Tile(60, Content.Load<Texture2D>("Tiles/mountain/mountain7"), false, "brown");
+            tiles[61] = new Tile(61, Content.Load<Texture2D>("Tiles/mountain/mountain8"), false, "brown");
+            tiles[62] = new Tile(62, Content.Load<Texture2D>("Tiles/mountain/mountain9"), false, "brown");
+            tiles[63] = new Tile(63, Content.Load<Texture2D>("Tiles/mountain/mountain11"), true, "brown");
+            tiles[64] = new Tile(64, Content.Load<Texture2D>("Tiles/mountain/mountain12"), false, "brown");
+            tiles[65] = new Tile(65, Content.Load<Texture2D>("Tiles/mountain/mountain17"), false, "brown");
+            tiles[66] = new Tile(66, Content.Load<Texture2D>("Tiles/mountain/mountain18"), false, "brown");
+            tiles[67] = new Tile(67, Content.Load<Texture2D>("Tiles/mountain/mountain19"), false, "brown");
+            tiles[68] = new Tile(68, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge1"), false, "green");
+            tiles[69] = new Tile(69, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge2"), false, "green");
             #endregion
             #region Tiles 70-79
-            tile[70] = Content.Load<Texture2D>("Tiles/Dock/dockpost");
-            tile[71] = Content.Load<Texture2D>("Tiles/Dock/dockvert");
-            tile[72] = Content.Load<Texture2D>("Tiles/mountain/mountain4");
-            tile[73] = Content.Load<Texture2D>("Tiles/mountain/mountain5");
-            tile[74] = Content.Load<Texture2D>("Tiles/mountain/mountain6");
-            tile[75] = Content.Load<Texture2D>("Tiles/mountain/mountain7");
-            tile[76] = Content.Load<Texture2D>("Tiles/mountain/mountain8");
-            tile[77] = Content.Load<Texture2D>("Tiles/mountain/mountain9");
-            tile[78] = Content.Load<Texture2D>("Tiles/mountain/mountain10");
-            tile[79] = Content.Load<Texture2D>("Tiles/mountain/mountain11");
+           
+            tiles[70] = new Tile(70, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge3"), false, "green");
+            tiles[71] = new Tile(71, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge4"), false, "green");
+            tiles[72] = new Tile(72, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge5"), false, "green");
+            tiles[73] = new Tile(73, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge6"), false, "green");
+            tiles[74] = new Tile(74, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge7"), false, "green");
+            tiles[75] = new Tile(75, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge8"), false, "green");
+            tiles[76] = new Tile(76, Content.Load<Texture2D>("Tiles/stairs/forestpathstairs1"), false, "white");
+            tiles[77] = new Tile(77, Content.Load<Texture2D>("Tiles/Castle/castlewindow1"), true, "gray");
+            tiles[78] = new Tile(78, Content.Load<Texture2D>("Tiles/Castle/castlewindow2"), true, "gray");
+            tiles[79] = new Tile(79, Content.Load<Texture2D>("Tiles/grass&water/grasswater1"), true, "blue");
             #endregion
             #region Tiles 80-89
-            tile[80] = Content.Load<Texture2D>("Tiles/mountain/mountain12");
-            tile[81] = Content.Load<Texture2D>("Tiles/mountain/mountain13");
-            tile[82] = Content.Load<Texture2D>("Tiles/mountain/mountain14");
-            tile[83] = Content.Load<Texture2D>("Tiles/mountain/mountain15");
-            tile[84] = Content.Load<Texture2D>("Tiles/mountain/mountain16");
-            tile[85] = Content.Load<Texture2D>("Tiles/mountain/mountain17");
-            tile[86] = Content.Load<Texture2D>("Tiles/mountain/mountain18");
-            tile[87] = Content.Load<Texture2D>("Tiles/mountain/mountain19");
-            tile[88] = Content.Load<Texture2D>("Tiles/grass&edge/gtileedge1");
-            tile[89] = Content.Load<Texture2D>("Tiles/grass&edge/gtileedge2");
+            tiles[80] = new Tile(80, Content.Load<Texture2D>("Tiles/grass&water/grasswater11"), true, "blue");
+            tiles[81] = new Tile(81, Content.Load<Texture2D>("Tiles/grass&water/grasswater12"), true, "blue");
+            tiles[82] = new Tile(82, Content.Load<Texture2D>("Tiles/grass&water/grasswater13"), true, "blue");
+            tiles[83] = new Tile(83, Content.Load<Texture2D>("Tiles/grass&water/grasswater14"), true, "blue");
+            tiles[84] = new Tile(84, Content.Load<Texture2D>("Tiles/grass&water/grasswater2"), true, "blue");
+            tiles[85] = new Tile(85, Content.Load<Texture2D>("Tiles/grass&water/grasswater21"), true, "blue");
+            tiles[86] = new Tile(86, Content.Load<Texture2D>("Tiles/grass&water/grasswater22"), true, "blue");
+            tiles[87] = new Tile(87, Content.Load<Texture2D>("Tiles/grass&water/grasswater23"), true, "blue");
+            tiles[88] = new Tile(88, Content.Load<Texture2D>("Tiles/grass&water/grasswater24"), true, "blue");
+            tiles[89] = new Tile(89, Content.Load<Texture2D>("Tiles/grass&water/grasswater3"), true, "blue");
             #endregion
             #region Tiles 90-99
-            tile[90] = Content.Load<Texture2D>("Tiles/grass&edge/gtileedge3");
-            tile[91] = Content.Load<Texture2D>("Tiles/grass&edge/gtileedge4");
-            tile[92] = Content.Load<Texture2D>("Tiles/grass&edge/gtileedge5");
-            tile[93] = Content.Load<Texture2D>("Tiles/grass&edge/gtileedge6");
-            tile[94] = Content.Load<Texture2D>("Tiles/grass&edge/gtileedge7");
-            tile[95] = Content.Load<Texture2D>("Tiles/grass&edge/gtileedge8");
-            tile[96] = Content.Load<Texture2D>("Tiles/stairs/forestpathstairs1");
-            tile[97] = Content.Load<Texture2D>("Tiles/Castle/castlewindow1");
-            tile[98] = Content.Load<Texture2D>("Tiles/Castle/castlewindow2");
-            tile[99] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile3");
-            #endregion
-            #region Tiles 100-109
-            tile[100] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile4");
-            tile[101] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile5");
-            tile[102] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile6");
-            tile[103] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile7");
-            tile[104] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile8");
-            tile[105] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile9");
-            tile[106] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile10");
-            tile[107] = Content.Load<Texture2D>("Tiles/Castle/castlefloortile11");
-            tile[108] = Content.Load<Texture2D>("Tiles/Castle/castledoor");
-            tile[109] = Content.Load<Texture2D>("Tiles/Castle/castledoor2");
-            #endregion
-            #region Tiles 110-119
-            tile[110] = Content.Load<Texture2D>("Tiles/grass&water/grasswater1");
-            tile[111] = Content.Load<Texture2D>("Tiles/grass&water/grasswater11");
-            tile[112] = Content.Load<Texture2D>("Tiles/grass&water/grasswater12");
-            tile[113] = Content.Load<Texture2D>("Tiles/grass&water/grasswater13");
-            tile[114] = Content.Load<Texture2D>("Tiles/grass&water/grasswater14");
-            tile[115] = Content.Load<Texture2D>("Tiles/grass&water/grasswater2");
-            tile[116] = Content.Load<Texture2D>("Tiles/grass&water/grasswater21");
-            tile[117] = Content.Load<Texture2D>("Tiles/grass&water/grasswater22");
-            tile[118] = Content.Load<Texture2D>("Tiles/grass&water/grasswater23");
-            tile[119] = Content.Load<Texture2D>("Tiles/grass&water/grasswater24");
-            #endregion
-            #region Tiles 120-129
-            tile[120] = Content.Load<Texture2D>("Tiles/grass&water/grasswater3");
-            tile[121] = Content.Load<Texture2D>("Tiles/grass&water/grasswater4");
-            tile[122] = Content.Load<Texture2D>("Other/Black");
-            tile[123] = Content.Load<Texture2D>("Tiles/house/House Flooring");
+            
+            tiles[90] = new Tile(90, Content.Load<Texture2D>("Tiles/grass&water/grasswater4"), true, "blue");
+            tiles[91] = new Tile(91, Content.Load<Texture2D>("Other/Black"), true, "black");
+            tiles[92] = new Tile(92, Content.Load<Texture2D>("Tiles/house/House Flooring"), false, "orange");
             #endregion
             #endregion
             #region special tiles
@@ -218,17 +181,74 @@ namespace GrappleGame
             charactersprites[2] = Content.Load<Texture2D>("Characters/NPCs/townmember2");
             charactersprites[2].Name = "townmember2";
             #endregion
-            #region object textures
-            entities[0] = null;
-            entities[1] = Content.Load<Texture2D>("Objects/practiceTree");
-            entities[2] = Content.Load<Texture2D>("Objects/basic_bush");
-            entities[3] = Content.Load<Texture2D>("Objects/basic_bush2");
-            entities[4] = Content.Load<Texture2D>("Objects/basic_bush3");
-            entities[5] = Content.Load<Texture2D>("Objects/stump2");
-            entities[6] = Content.Load<Texture2D>("Objects/wild bush 1");
-            entities[7] = Content.Load<Texture2D>("Objects/Large Tree");
-            #endregion
+            #region objects
+            objects[0] = null;
+            objects[1] = new Object(1, Content.Load<Texture2D>("Objects/practiceTree_top"), Content.Load<Texture2D>("Objects/practiceTree_bottom"),
+                new float[,] { { 2, 2, 2 }, { 2, 2, 2 }, { 0, 1, 0 }, { 0, 0, 0 } },
+                new float[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 1, 0 }, { 0, 0, 0 } },
+                new float[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }, { 0, 0, 0 } });
+            objects[2] = new Object(2, Content.Load<Texture2D>("Objects/basic_bush"), null,
+                new float[,] { { 1, 1 }, { 1, 1 } },
+                new float[,] { { 1, 1 }, { 1, 1 } },
+                new float[,] { { 0, 0 }, { 0, 0 } });
+            objects[3] = new Object(3, Content.Load<Texture2D>("Objects/basic_bush2"), null,
+                new float[,] { { 1, 1 }, { 1, 1 } },
+                new float[,] { { 1, 1 }, { 1, 1 } },
+                new float[,] { { 0, 0 }, { 0, 0 } });
+            objects[4] = new Object(4, Content.Load<Texture2D>("Objects/basic_bush3"), null,
+                new float[,] { { 1, 1 }, { 1, 1 } },
+                new float[,] { { 1, 1 }, { 1, 1 } },
+                new float[,] { { 0, 0 }, { 0, 0 } });
+            objects[5] = new Object(5, Content.Load<Texture2D>("Objects/stump2"), null,
+                new float[,] { { 1 } },
+                new float[,] { { 1 } },
+                new float[,] { { 0 } });
+            objects[6] = new Object(6, Content.Load<Texture2D>("Objects/wild bush 1"), null,
+                new float[,] { { 1, 1 }, { 0, 0 } },
+                new float[,] { { 1, 1 }, { 0, 0 } },
+                new float[,] { { 0, 0 }, { 0, 0 } });
+            objects[7] = new Object(7, Content.Load<Texture2D>("Objects/Shadow1"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[8] = new Object(8, Content.Load<Texture2D>("Objects/Shadow2"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[9] = new Object(9, Content.Load<Texture2D>("Objects/Shadow3"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[10] = new Object(10, Content.Load<Texture2D>("Objects/Shadow4"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[11] = new Object(11, Content.Load<Texture2D>("Objects/Shadow5"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[12] = new Object(12, Content.Load<Texture2D>("Objects/Shadow6"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[13] = new Object(13, Content.Load<Texture2D>("Objects/Shadow7"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[14] = new Object(14, Content.Load<Texture2D>("Objects/Shadow8"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[15] = new Object(15, Content.Load<Texture2D>("Objects/Shadow9"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
+            objects[16] = new Object(16, Content.Load<Texture2D>("Objects/Shadow10"), null,
+                new float[,] { { 0 } },
+                new float[,] { { 0 } },
+                new float[,] { { 0 } });
 
+            #endregion
             font = Content.Load<SpriteFont>("Fonts/words");
             editor = new Editor(0);
             editor.Load(Content, font);
@@ -236,12 +256,12 @@ namespace GrappleGame
         }
         protected override void LoadContent()
         {
-            theDude = new Dude(new Vector2(36, 4), -1, Content);
+            theDude = new Dude(new Vector2(0, 0), -1, Content);
             MapName = Load_SaveMapNames.LoadMapNames();
             Maps = new List<Map>();
             foreach (string[] temp in MapName)
             {
-                Maps.Add(new Map(editor, theDude, Content, temp[0], tile, entities));
+                Maps.Add(new Map(editor, theDude, Content, temp[0], tiles, objects));
                 Maps[Maps.Count - 1].smallmapCount = Convert.ToInt32(temp[1]);
                 Maps[Maps.Count - 1].Index = Maps.Count - 1;
             }
@@ -296,7 +316,7 @@ namespace GrappleGame
             {
                 if (keys.IsKeyDown(Keys.F11))//save button
                 {
-                    currentMap.objectSorter();
+                    currentMap.objectSorter(objects);
                     currentMap.textfiles.Saved(currentMap.SizeX, currentMap.SizeY);
                     Load_SaveMapNames.SaveMapNames(Maps);
                     Load_SaveMapNames.SaveTransportTiles(Maps);
@@ -308,28 +328,45 @@ namespace GrappleGame
                     if (editor.currentEditorState == Editor.EditorState.Tiles && mouse.LeftButton == ButtonState.Pressed && mouse.X < GraphicsDevice.Viewport.Width - 200 && mouse.Y < GraphicsDevice.Viewport.Height && editor.WindowX >= 0 && editor.WindowY >= 0 && editor.WindowX < currentMap.SizeX && editor.WindowY < currentMap.SizeY)
                     {//replaces tiles with new designated tile, replaces the value in the tileset and the texture in the tiledata
                         currentMap.textfiles.tileSet[editor.WindowX, editor.WindowY] = (int)editor.brushers;
-                        currentMap.textfiles.impassSet[editor.WindowX, editor.WindowY] = editor.impassibleCheck((int)editor.brushers);
-                        currentMap.textfiles.grappleSet[editor.WindowX, editor.WindowY] = editor.grappableCheck((int)editor.brushers);
+                        currentMap.textfiles.impassSet[editor.WindowX, editor.WindowY] = tiles[(int)editor.brushers].impassible == true ? 1 : 0;
                         for (int x = 0; x < currentMap.SizeX; x++)
+                        {
                             for (int y = 0; y < currentMap.SizeY; y++)
-                                currentMap.tileData[x, y] = new tileClass(x, y, tile[currentMap.textfiles.tileSet[x, y]], currentMap.textfiles.heightSet[x, y], currentMap.textfiles.tileSet[x, y], currentMap.textfiles.impassSet[x, y], currentMap.textfiles.grappleSet[x, y], entities[currentMap.textfiles.entitySet[x, y]], currentMap.textfiles.depthSet[x, y], currentMap.textfiles.coverageSet[x, y]);
+                            {
+                                currentMap.tileData[x, y] = new tileClass(new Vector2(x, y), tiles[currentMap.textfiles.tileSet[x, y]], objects[currentMap.textfiles.objectSet[x, y]]);
+                                currentMap.tileData[x, y].loadTileData(1f, currentMap.textfiles.impassSet[x, y], currentMap.textfiles.heightSet[x, y]);
+                                currentMap.tileData[x, y].loadObjectData(currentMap.textfiles.depthSet[x, y], currentMap.textfiles.depthSet[x, y] + 0.3f, currentMap.textfiles.objHeightSet[x, y], currentMap.textfiles.solidSet[x, y], currentMap.textfiles.shadowSet[x, y]);
+                            }
+                        }
                         editor.DrawingAble = false;
                     }
-                    if (editor.currentEditorState == Editor.EditorState.entities && mouse.LeftButton == ButtonState.Pressed && mouse.X < GraphicsDevice.Viewport.Width - 200 && mouse.Y < GraphicsDevice.Viewport.Height && editor.WindowX >= 0 && editor.WindowY >= 0 && editor.WindowX < currentMap.SizeX && editor.WindowY < currentMap.SizeY)
+                    if (editor.currentEditorState == Editor.EditorState.Objects && mouse.LeftButton == ButtonState.Pressed && mouse.X < GraphicsDevice.Viewport.Width - 200 && mouse.Y < GraphicsDevice.Viewport.Height && editor.WindowX >= 0 && editor.WindowY >= 0 && editor.WindowX < currentMap.SizeX && editor.WindowY < currentMap.SizeY)
                     {
-                        currentMap.textfiles.entitySet[editor.WindowX, editor.WindowY] = (int)editor.brushers;
+                        currentMap.textfiles.objectSet[editor.WindowX, editor.WindowY] = (int)editor.brushers;
                         for (int x = 0; x < currentMap.SizeX; x++)
+                        {
                             for (int y = 0; y < currentMap.SizeY; y++)
-                                currentMap.tileData[x, y] = new tileClass(x, y, tile[currentMap.textfiles.tileSet[x, y]], currentMap.textfiles.heightSet[x, y], currentMap.textfiles.tileSet[x, y], currentMap.textfiles.impassSet[x, y], currentMap.textfiles.grappleSet[x, y], entities[currentMap.textfiles.entitySet[x, y]], currentMap.textfiles.depthSet[x, y], currentMap.textfiles.coverageSet[x, y]);
+                            {
+                                currentMap.tileData[x, y] = new tileClass(new Vector2(x, y), tiles[currentMap.textfiles.tileSet[x, y]], objects[currentMap.textfiles.objectSet[x, y]]);
+                                currentMap.tileData[x, y].loadTileData(1f, currentMap.textfiles.impassSet[x, y], currentMap.textfiles.heightSet[x, y]);
+                                currentMap.tileData[x, y].loadObjectData(currentMap.textfiles.depthSet[x, y], currentMap.textfiles.depthSet[x, y] + 0.3f, currentMap.textfiles.objHeightSet[x, y], currentMap.textfiles.solidSet[x, y], currentMap.textfiles.shadowSet[x, y]);
+                            }
+                        }
                         editor.DrawingAble = false;
 
                     }
-                    if (editor.currentEditorState == Editor.EditorState.entities && mouse.RightButton == ButtonState.Pressed && mouse.X < GraphicsDevice.Viewport.Width - 200 && mouse.Y < GraphicsDevice.Viewport.Height && editor.WindowX >= 0 && editor.WindowY >= 0 && editor.WindowX < currentMap.SizeX && editor.WindowY < currentMap.SizeY)
+                    if (editor.currentEditorState == Editor.EditorState.Objects && mouse.RightButton == ButtonState.Pressed && mouse.X < GraphicsDevice.Viewport.Width - 200 && mouse.Y < GraphicsDevice.Viewport.Height && editor.WindowX >= 0 && editor.WindowY >= 0 && editor.WindowX < currentMap.SizeX && editor.WindowY < currentMap.SizeY)
                     {
-                        currentMap.textfiles.entitySet[editor.WindowX, editor.WindowY] = 0;
+                        currentMap.textfiles.objectSet[editor.WindowX, editor.WindowY] = 0;
                         for (int x = 0; x < currentMap.SizeX; x++)
+                        {
                             for (int y = 0; y < currentMap.SizeY; y++)
-                                currentMap.tileData[x, y] = new tileClass(x, y, tile[currentMap.textfiles.tileSet[x, y]], currentMap.textfiles.heightSet[x, y], currentMap.textfiles.tileSet[x, y], currentMap.textfiles.impassSet[x, y], currentMap.textfiles.grappleSet[x, y], entities[currentMap.textfiles.entitySet[x, y]], currentMap.textfiles.depthSet[x, y], currentMap.textfiles.coverageSet[x, y]);
+                            {
+                                currentMap.tileData[x, y] = new tileClass(new Vector2(x, y), tiles[currentMap.textfiles.tileSet[x, y]], objects[currentMap.textfiles.objectSet[x, y]]);
+                                currentMap.tileData[x, y].loadTileData(1f, currentMap.textfiles.impassSet[x, y], currentMap.textfiles.heightSet[x, y]);
+                                currentMap.tileData[x, y].loadObjectData(currentMap.textfiles.depthSet[x, y], currentMap.textfiles.depthSet[x, y] + 0.3f, currentMap.textfiles.objHeightSet[x, y], currentMap.textfiles.solidSet[x, y], currentMap.textfiles.shadowSet[x, y]);
+                            }
+                        }
                         editor.DrawingAble = false;
 
                     }
@@ -339,11 +376,15 @@ namespace GrappleGame
                             currentMap.textfiles.heightSet[editor.WindowX, editor.WindowY] = editor.brushers;
                         if (editor.currentEdittingState == Editor.Edit.Impassible)
                             currentMap.textfiles.impassSet[editor.WindowX, editor.WindowY] = (int)editor.brushers;
-                        if (editor.currentEdittingState == Editor.Edit.Grappable)
-                            currentMap.textfiles.grappleSet[editor.WindowX, editor.WindowY] = (int)editor.brushers;
                         for (int x = 0; x < currentMap.SizeX; x++)
+                        {
                             for (int y = 0; y < currentMap.SizeY; y++)
-                                currentMap.tileData[x, y] = new tileClass(x, y, tile[currentMap.textfiles.tileSet[x, y]], currentMap.textfiles.heightSet[x, y], currentMap.textfiles.tileSet[x, y], currentMap.textfiles.impassSet[x, y], currentMap.textfiles.grappleSet[x, y], entities[currentMap.textfiles.entitySet[x, y]], currentMap.textfiles.depthSet[x, y], currentMap.textfiles.coverageSet[x, y]);
+                            {
+                                currentMap.tileData[x, y] = new tileClass(new Vector2(x, y), tiles[currentMap.textfiles.tileSet[x, y]], objects[currentMap.textfiles.objectSet[x, y]]);
+                                currentMap.tileData[x, y].loadTileData(1f, currentMap.textfiles.impassSet[x, y], currentMap.textfiles.heightSet[x, y]);
+                                currentMap.tileData[x, y].loadObjectData(currentMap.textfiles.depthSet[x, y], currentMap.textfiles.depthSet[x, y] + 0.3f, currentMap.textfiles.objHeightSet[x, y], currentMap.textfiles.solidSet[x, y], currentMap.textfiles.shadowSet[x, y]);
+                            }
+                        }
                         editor.DrawingAble = false;
                     }
                     if (editor.currentEditorState == Editor.EditorState.Maps)
@@ -383,7 +424,7 @@ namespace GrappleGame
                             if (!editor.InputtingSizeY)
                             {
 
-                                currentMap = editor.createMap(currentMap, editor, theDude, Content, tile, entities);
+                                currentMap = editor.createMap(currentMap, editor, theDude, Content, tiles, objects);
                                 if (editor.CreateNewMap)
                                 {
                                     Maps.Add(currentMap);
@@ -532,7 +573,7 @@ namespace GrappleGame
             spriteBatch.End();
 
             spriteBatch.Begin();//This drawing segment draws everthing that goes on the game hud, such as the map, character health, etc.
-            editor.DrawEditorMode(spriteBatch, tile, GraphicsDevice, Constants.tilesize, font, map, charactersprites, currentMap, entities);//draws all overlays, tiles, text, buttons associated with editor mode
+            editor.DrawEditorMode(spriteBatch, tiles, GraphicsDevice, Constants.tilesize, font, map, charactersprites, currentMap, objects);//draws all overlays, tiles, text, buttons associated with editor mode
             #region game HUD
             if (editor.editorOn == false)
             {

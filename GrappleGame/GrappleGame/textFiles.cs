@@ -6,17 +6,14 @@ namespace GrappleGame
 {
     class textFiles
     {
-        //public struct TileAttributes
-        //{
-
-        //}
         public int[,] tileSet; //stores tile type at each array point, also what is loaded and saved
         public float[,] heightSet;
         public int[,] impassSet;
-        public int[,] grappleSet;
-        public int[,] entitySet;
+        public int[,] objectSet;
         public float[,] depthSet;
-        public float[,] coverageSet;
+        public float[,] objHeightSet;
+        public int[,] solidSet;
+        public float[,] shadowSet;
         string MapName;
 
 
@@ -26,10 +23,11 @@ namespace GrappleGame
             heightSet = new float[X, Y];
             MapName = newNapName;
             impassSet = new int[X, Y];
-            grappleSet = new int[X, Y];
-            entitySet = new int[X, Y];
+            objectSet = new int[X, Y];
             depthSet = new float[X, Y];
-            coverageSet = new float[X, Y];
+            objHeightSet = new float[X, Y];
+            solidSet = new int[X, Y];
+            shadowSet = new float[X, Y];
         }
         #region Saving/Loading
         public void SavedSmall(int SizeX, int SizeY, int SMC, int basetile, string mapname)
@@ -40,7 +38,7 @@ namespace GrappleGame
                 {
                     for (int x = 0; x < SizeX; x++)
                     {
-                        saveFile.Write(basetile + ":0:0:0:0:0.8:-1,");
+                        saveFile.Write(basetile + ":0:0:0:0:.40003:0:0,");
                     }
                     saveFile.Write("\r\n");
                 }
@@ -57,7 +55,7 @@ namespace GrappleGame
                 {
                     for (int x = 0; x < SizeX; x++)
                     {
-                        saveFile.Write(tileSet[x, y] + ":" + heightSet[x, y] + ":" + impassSet[x, y] + ":" + grappleSet[x,y] + ":" + entitySet[x,y] + ":" + depthSet[x,y] + ":" + coverageSet[x,y] + ",");
+                        saveFile.Write(tileSet[x, y] + ":" + heightSet[x, y] + ":" + impassSet[x, y] + ":" + solidSet[x,y] + ":" + objectSet[x,y] + ":" + depthSet[x,y] + ":" + objHeightSet[x,y] + ":" + shadowSet[x,y] + ",");
                     }
                     saveFile.Write("\r\n");
                 }
@@ -82,10 +80,11 @@ namespace GrappleGame
                         tileSet[x, y] = Convert.ToInt32(tileatts[0]);
                         heightSet[x, y] = (float)Convert.ToDecimal(tileatts[1]);
                         impassSet[x, y] = Convert.ToInt32(tileatts[2]);
-                        grappleSet[x, y] = Convert.ToInt32(tileatts[3]);
-                        entitySet[x, y] = Convert.ToInt32(tileatts[4]);
+                        solidSet[x, y] = Convert.ToInt32(tileatts[3]);
+                        objectSet[x, y] = Convert.ToInt32(tileatts[4]);
                         depthSet[x, y] = (float)Convert.ToDecimal(tileatts[5]);
-                        coverageSet[x, y] = (float)Convert.ToDecimal(tileatts[6]);
+                        objHeightSet[x, y] = (float)Convert.ToDecimal(tileatts[6]);
+                        shadowSet[x, y] = (float)Convert.ToDecimal(tileatts[7]);
                     }
                     y++;
                 }

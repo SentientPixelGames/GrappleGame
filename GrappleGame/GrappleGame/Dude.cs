@@ -77,10 +77,7 @@ namespace GrappleGame
         enum Visibility
         {
             Normal,
-            Covered,
             Hidden,
-            Covering,
-            Uncovering,
             Hiding,
             Unhiding,
         }
@@ -238,7 +235,8 @@ namespace GrappleGame
         /// keeps track of height difference between dude and ground
         /// </summary>
         private float heightDifOld, heightDifNew;
-
+        bool tempShadowCheck = false;
+        bool tempShadowPrevious = false;
         /// <summary>
         /// Contains all textures, properties, variables pertaining the the user controlled character
         /// </summary>
@@ -302,7 +300,7 @@ namespace GrappleGame
             {
                 if (heightDifOld == 0)
                 {
-                    sb.Draw(shadow, new Vector2(pixelPosition.X + Constants.tilesize / 2, pixelPosition.Y + Constants.tilesize), new Rectangle(0, 0, shadow.Width, shadow.Height), Color.White, 0f, new Vector2(shadow.Width / 2, shadow.Height - 3), 1f, SpriteEffects.None, 0.901f);
+                    sb.Draw(shadow, new Vector2(pixelPosition.X + Constants.tilesize / 2, pixelPosition.Y + Constants.tilesize), new Rectangle(0, 0, shadow.Width, shadow.Height), Color.White, 0f, new Vector2(shadow.Width / 2, shadow.Height - 3), 1f, SpriteEffects.None, 0.7002f);
                 }
                 else
                 {
@@ -311,7 +309,7 @@ namespace GrappleGame
                         heightfactor = 0.5f;
                     float temp1 = pixelPosition.X + (3 * (1 + heightfactor)) - (shadow.Width / 2) * heightfactor;
                     float temp2 = ((float)shadow.Width / (float)Constants.tilesize) * (Constants.tilesize - (pixelPosition.X - (newPosition.X * Constants.tilesize)));
-                    sb.Draw(shadow, new Vector2(temp1, pixelPosition.Y + Constants.tilesize * (1 + heightDifNew)), new Rectangle(0, 0, shadow.Width, shadow.Height), Color.White, 0f, new Vector2(0, shadow.Height - 3), 1f + heightfactor, SpriteEffects.None, 0.901f);
+                    sb.Draw(shadow, new Vector2(temp1, pixelPosition.Y + Constants.tilesize * (1 + heightDifNew)), new Rectangle(0, 0, shadow.Width, shadow.Height), Color.White, 0f, new Vector2(0, shadow.Height - 3), 1f + heightfactor, SpriteEffects.None, 0.7002f);
                 }
             }
             else
@@ -325,12 +323,12 @@ namespace GrappleGame
                             heightfactor = 0.5f;
                         float temp1 = pixelPosition.X + (3 * (1 + heightfactor)) - (shadow.Width / 2) * heightfactor;
                         float temp2 = ((float)shadow.Width / (float)Constants.tilesize) * (Constants.tilesize - (pixelPosition.X - (newPosition.X * Constants.tilesize)));
-                        sb.Draw(shadow, new Vector2(temp1, pixelPosition.Y + Constants.tilesize * (1 + heightDifNew)), new Rectangle(0, 0, (int)temp2, shadow.Height), Color.White, 0f, new Vector2(0, shadow.Height - 3), 1f + heightfactor, SpriteEffects.None, 0.901f);
+                        sb.Draw(shadow, new Vector2(temp1, pixelPosition.Y + Constants.tilesize * (1 + heightDifNew)), new Rectangle(0, 0, (int)temp2, shadow.Height), Color.White, 0f, new Vector2(0, shadow.Height - 3), 1f + heightfactor, SpriteEffects.None, 0.7002f);
                         //old tile shadow
                         heightfactor = heightDifOld * 0.5f;
                         if (heightfactor > 0.5f)
                             heightfactor = 0.5f;
-                        sb.Draw(shadow, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y + Constants.tilesize * (1 + heightDifOld)), new Rectangle((int)(((float)shadow.Width / (float)Constants.tilesize) * (Constants.tilesize - (pixelPosition.X - (newPosition.X * Constants.tilesize)))), 0, shadow.Width - (int)(((float)shadow.Width / (float)Constants.tilesize) * (Constants.tilesize - (pixelPosition.X - (newPosition.X * Constants.tilesize)))), shadow.Height), Color.White, 0f, new Vector2(0, shadow.Height - 3), 1f + heightfactor, SpriteEffects.None, 0.901f);
+                        sb.Draw(shadow, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y + Constants.tilesize * (1 + heightDifOld)), new Rectangle((int)(((float)shadow.Width / (float)Constants.tilesize) * (Constants.tilesize - (pixelPosition.X - (newPosition.X * Constants.tilesize)))), 0, shadow.Width - (int)(((float)shadow.Width / (float)Constants.tilesize) * (Constants.tilesize - (pixelPosition.X - (newPosition.X * Constants.tilesize)))), shadow.Height), Color.White, 0f, new Vector2(0, shadow.Height - 3), 1f + heightfactor, SpriteEffects.None, 0.7002f);
 
                         //sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
                         break;
@@ -358,87 +356,131 @@ namespace GrappleGame
             switch (currentVisibility)
             {
                 case Visibility.Normal:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                    if(tempShadowCheck == true && tempShadowPrevious == true)
+                        sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.Lerp(Color.White, Color.Black, 0.5f), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.4f);
+                    else if(tempShadowCheck == false && tempShadowPrevious == false)
+                        sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.4f);
+                    else if(tempShadowCheck == false && tempShadowPrevious == true)
+                    {
+                        sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.Lerp(Color.White, Color.Black, 0.5f), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.4f);
+                        switch (currentMovingDirection)
+                        {
+                            case Direction.Up:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.40001f);
+                                break;
+                            case Direction.Left:
+                                sb.Draw(texture, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, 0, Constants.tilesize - ((int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.40001f);
+                                break;
+                            case Direction.Down:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize))), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.40001f);
+                                break;
+                            case Direction.Right:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.40001f);
+                                break;
+                        }
+
+                    }
+                    else if (tempShadowCheck == true && tempShadowPrevious == false)
+                    {
+                        sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.Lerp(Color.White, Color.Black, 0.5f), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.4f);
+                        switch (currentMovingDirection)
+                        {
+                            case Direction.Up:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.40001f);
+                                break;
+                            case Direction.Left:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.40001f);
+                                break;
+                            case Direction.Down:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.40001f);
+                                break;
+                            case Direction.Right:
+                                sb.Draw(texture, newPosition * Constants.tilesize, new Rectangle(Constants.tilesize * drawFrame + Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), 0, (int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.40001f);
+                                break;
+                        }
+                    }
                     break;
                 case Visibility.Hidden:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    break;
-                case Visibility.Covered:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    break;
-                case Visibility.Covering:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    switch (currentMovingDirection)
+                    if(tempShadowCheck == true && tempShadowPrevious == true)
+                        sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.Lerp(Color.White, Color.Black, 0.5f), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                    else if(tempShadowCheck == false && tempShadowPrevious == false)
+                        sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                    else if(tempShadowCheck == false && tempShadowPrevious == true)
                     {
-                        case Direction.Up:
-                            //sb.Draw(texture, new Vector2(pixelPosition.X, previousPosition.Y * Constants.tilesize), new Rectangle(Constants.tilesize * drawFrame, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Left:
-                            sb.Draw(texture, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, 0, Constants.tilesize - ((int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Down:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize))), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Right:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
+                        sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.Lerp(Color.White, Color.Black, 0.5f), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.7f);
+                        switch (currentMovingDirection)
+                        {
+                            case Direction.Up:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                                break;
+                            case Direction.Left:
+                                sb.Draw(texture, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, 0, Constants.tilesize - ((int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                                break;
+                            case Direction.Down:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize))), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                                break;
+                            case Direction.Right:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                                break;
+                        }
+
+                    }
+                    else if (tempShadowCheck == true && tempShadowPrevious == false)
+                    {
+                        sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.Lerp(Color.White, Color.Black, 0.5f), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.7f);
+                        switch (currentMovingDirection)
+                        {
+                            case Direction.Up:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                                break;
+                            case Direction.Left:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                                break;
+                            case Direction.Down:
+                                sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                                break;
+                            case Direction.Right:
+                                sb.Draw(texture, newPosition * Constants.tilesize, new Rectangle(Constants.tilesize * drawFrame + Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), 0, (int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                                break;
+                        }
                     }
                     break;
-                case Visibility.Uncovering:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    switch (currentMovingDirection)
-                    {
-                        case Direction.Up:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Left:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Down:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Right:
-                            sb.Draw(texture, newPosition * Constants.tilesize, new Rectangle(Constants.tilesize * drawFrame + Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), 0, (int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                    }
-                    break;
-                case Visibility.Hiding:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    switch (currentMovingDirection)
-                    {
-                        case Direction.Up:
-                            sb.Draw(texture, new Vector2(pixelPosition.X, previousPosition.Y * Constants.tilesize), new Rectangle(Constants.tilesize * drawFrame, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Left:
-                            sb.Draw(texture, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, 0, Constants.tilesize - ((int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Down:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize))), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Right:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                    }
-                    break;
-                case Visibility.Unhiding:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    switch (currentFacingDirection)
-                    {
-                        case Direction.Up:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Left:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Down:
-                            sb.Draw(texture, new Vector2(pixelPosition.X, newPosition.Y * Constants.tilesize), new Rectangle(Constants.tilesize * drawFrame, Constants.tilesize - (int)pixelPosition.Y + (int)(previousPosition.Y * Constants.tilesize), Constants.tilesize, (int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Right:
-                            sb.Draw(texture, new Vector2(newPosition.X * Constants.tilesize, (int)pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), 0, (int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                    }
-                    break;
+                //case Visibility.Hiding:
+                //    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.70001f);
+                //    switch (currentMovingDirection)
+                //    {
+                //        case Direction.Up:
+                //            sb.Draw(texture, new Vector2(pixelPosition.X, previousPosition.Y * Constants.tilesize), new Rectangle(Constants.tilesize * drawFrame, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Left:
+                //            sb.Draw(texture, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, 0, Constants.tilesize - ((int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Down:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize))), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Right:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //    }
+                //    break;
+                //case Visibility.Unhiding:
+                //    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
+                //    switch (currentFacingDirection)
+                //    {
+                //        case Direction.Up:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Left:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Down:
+                //            sb.Draw(texture, new Vector2(pixelPosition.X, newPosition.Y * Constants.tilesize), new Rectangle(Constants.tilesize * drawFrame, Constants.tilesize - (int)pixelPosition.Y + (int)(previousPosition.Y * Constants.tilesize), Constants.tilesize, (int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Right:
+                //            sb.Draw(texture, new Vector2(newPosition.X * Constants.tilesize, (int)pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), 0, (int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //    }
+                //    break;
             }
             switch (currentGrapple)
             {
@@ -488,7 +530,12 @@ namespace GrappleGame
                     goto case Grapple.Hit;
             }
         }
-
+        public bool isHidden()
+        {
+            if (currentVisibility == Visibility.Hidden)
+                return true;
+            else return false;
+        }
         #region DudeInput
         /// <summary>
         /// Tracks user input of the game through the keyboard. Default control scheme
@@ -909,7 +956,7 @@ namespace GrappleGame
                     int i = 0;
                     while (true)
                     {
-                        if (height - i > map.tileData[(int)tilePosition.X, (int)tilePosition.Y + i].height)
+                        if (height - i > map.tileData[(int)tilePosition.X, (int)tilePosition.Y + i].tileData.height)
                         {
                             i++;
                         }
@@ -929,7 +976,7 @@ namespace GrappleGame
                     else
                     {
                         pixelPosition.Y = tilePosition.Y * Constants.tilesize;
-                        height = map.tileData[(int)tilePosition.X, (int)tilePosition.Y].height;
+                        height = map.tileData[(int)tilePosition.X, (int)tilePosition.Y].tileData.height;
                         goto case ActionState.Finishing;
                     }
                     break;
@@ -971,41 +1018,35 @@ namespace GrappleGame
             }
             tileClass oldTile = map.tileData[(int)previousPosition.X, (int)previousPosition.Y];
             tileClass newTile = map.tileData[(int)newPosition.X, (int)newPosition.Y];
-            heightDifOld = height - oldTile.height;
-            heightDifNew = height - newTile.height;
-            if (oldTile.coverage == newTile.coverage)
-            {
-                if (oldTile.coverage == -1)
-                {
-                    currentVisibility = Visibility.Normal;
-                    return;
-                }
-                if (oldTile.coverage == 0)
-                {
-                    currentVisibility = Visibility.Covered;
-                    return;
-                }
-                if (oldTile.coverage > 1)
-                {
-                    currentVisibility = Visibility.Hidden;
-                    return;
-                }
-            }
-            else
-            {
-                if (oldTile.coverage == 0 && newTile.coverage > 1)
-                    currentVisibility = Visibility.Hidden;
-                if (oldTile.coverage > 1 && newTile.coverage == 0)
-                    currentVisibility = Visibility.Covered;
-                if (oldTile.coverage == -1 && newTile.coverage == 0)
-                    currentVisibility = Visibility.Covering;
-                if (oldTile.coverage == 0 && newTile.coverage == -1)
-                    currentVisibility = Visibility.Uncovering;
-                if (oldTile.coverage == -1 && newTile.coverage > 1)
-                    currentVisibility = Visibility.Hiding;
-                if (oldTile.coverage > 1 && newTile.coverage == -1)
-                    currentVisibility = Visibility.Unhiding;
-            }
+            heightDifOld = height - oldTile.tileData.height;
+            heightDifNew = height - newTile.tileData.height;
+            //if (oldTile.objectData.height == newTile.objectData.height)
+            //{
+            //    if (oldTile.objectData.height == 0)
+            //    {
+            //        currentVisibility = Visibility.Normal;
+            //        return;
+            //    }
+            //    if (oldTile.objectData.height > 1)
+            //    {
+            //        currentVisibility = Visibility.Hidden;
+            //        return;
+            //    }
+            //}
+            //else
+            //{
+            //    if (oldTile.objectData.height == 0 && newTile.objectData.height > 1)
+            //        currentVisibility = Visibility.Hiding;
+            //    if (oldTile.objectData.height > 1 && newTile.objectData.height == 0)
+            //        currentVisibility = Visibility.Unhiding;
+            //}
+            if (newTile.objectData.height > 1)
+                currentVisibility = Visibility.Hidden;
+            else currentVisibility = Visibility.Normal;
+            tempShadowPrevious = tempShadowCheck;
+            if (newTile.objectData.shadow == 1)
+                tempShadowCheck = true;
+            else tempShadowCheck = false;                 
         }
 
         /// <summary>
@@ -1022,13 +1063,13 @@ namespace GrappleGame
                     {//if dude is moving inside the map
                         tileClass startingTile = map.tileData[(int)tilePosition.X, (int)tilePosition.Y];
                         tileClass endingTile = map.tileData[(int)tilePosition.X + movingDirection.X, (int)tilePosition.Y + movingDirection.Y];
-                        if (startingTile == null || (!endingTile.impassible && Math.Abs(startingTile.height - endingTile.height) <= 0.5f
-                            && endingTile.coverage != 1f) || editor)
+                        if (startingTile == null || (!endingTile.tileData.impassible && Math.Abs(startingTile.tileData.height - endingTile.tileData.height) <= 0.5f
+                            && !endingTile.objectData.solid) || editor)
                         {//if target tile is movable to
                             //move approved, start moving process
                             tilePosition.X += movingDirection.X;
                             tilePosition.Y += movingDirection.Y;
-                            height = endingTile.height;
+                            height = endingTile.tileData.height;
                             currentActionState = ActionState.InProgress;
                             goto case ActionState.InProgress;
                         }
@@ -1076,8 +1117,9 @@ namespace GrappleGame
                         {//is grapple inside map?
                             tileClass startingTile = map.tileData[(int)tilePosition.X, (int)tilePosition.Y];
                             tileClass endingTile = map.tileData[(int)tilePosition.X + (movingDirection.X * i), (int)tilePosition.Y + (movingDirection.Y * i)];
-                            float alteredcoverage = endingTile.coverage > -1 ? endingTile.coverage : 0;
-                            if ((endingTile.grappable == true && endingTile.height == startingTile.height) || (alteredcoverage == 1f && endingTile.height == startingTile.height) || endingTile.height > startingTile.height || (endingTile.height < startingTile.height && endingTile.height + alteredcoverage > startingTile.height))
+                            if ((endingTile.objectData.height == 1f && endingTile.tileData.height == startingTile.tileData.height) || 
+                                endingTile.tileData.height > startingTile.tileData.height || 
+                                (endingTile.tileData.height < startingTile.tileData.height && endingTile.tileData.height + endingTile.objectData.height > startingTile.tileData.height))
                             {
                                 grappleShotLength = i - 1;
                                 tilePosition.Y += grappleShotLength * movingDirection.Y;
@@ -1121,7 +1163,7 @@ namespace GrappleGame
                             dudeMoved = true;
                             pixelPosition = tilePosition * Constants.tilesize;
                             grappleSize = 0;
-                            if (map.tileData[(int)tilePosition.X, (int)tilePosition.Y].impassible == true)
+                            if (map.tileData[(int)tilePosition.X, (int)tilePosition.Y].tileData.impassible == true)
                             {
                                 tilePosition.X -= grappleShotLength * movingDirection.X;
                                 tilePosition.Y -= grappleShotLength * movingDirection.Y;
@@ -1151,7 +1193,7 @@ namespace GrappleGame
                     break;
                 case Grapple.Finishing:
                     pixelPosition = tilePosition*32;
-                    if (height > map.tileData[(int)tilePosition.X, (int)tilePosition.Y].height + 0.5)
+                    if (height > map.tileData[(int)tilePosition.X, (int)tilePosition.Y].tileData.height + 0.5)
                     {
                         currentAction = Action.Falling;
                         currentActionState = ActionState.Starting;

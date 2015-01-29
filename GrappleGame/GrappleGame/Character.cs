@@ -91,10 +91,7 @@ namespace GrappleGame
         enum Visibility
         {
             Normal,
-            Covered,
             Hidden,
-            Covering,
-            Uncovering,
             Hiding,
             Unhiding,
         }
@@ -103,26 +100,6 @@ namespace GrappleGame
         /// This specific instance of the visibility enum keeps track of how to draw the dude
         /// </summary>
         Visibility currentVisibility = Visibility.Normal;
-
-        /// <summary>
-        /// This enum keeps track of the state of the grappling hook. Runs seperate from Actions and Actions states so that certain actions can be performed simultaneously while grappling. This enum performs the function of both the action and actionstate enums for the grapple
-        /// </summary>
-        enum Grapple
-        {
-            Static,
-            Starting,
-            Extending,
-            Hit,
-            Miss,
-            Finishing,
-            Done,
-        }
-
-        /// <summary>
-        /// This specific instance of the Grapple enum keeps track of the grapple state and progress
-        /// </summary>
-        Grapple currentGrapple = Grapple.Static;
-
         /// <summary>
         /// Contains the standing and walking images of the dude
         /// </summary>
@@ -177,12 +154,6 @@ namespace GrappleGame
         /// sets the total amount of health possible for the dude
         /// </summary>
         public int totalHealth = 10;
-
-        /// <summary>
-        /// sets the grapple speed in pixels per update cycle
-        /// </summary>
-        private int grappleSpeed = 1;
-
         /// <summary>
         /// sets the characters poosible conversations
         /// </summary>
@@ -217,32 +188,10 @@ namespace GrappleGame
         /// The current standing image the dude is on. 
         /// </summary>
         private int standFrame = 0;
-
-        /// <summary>
-        /// The maximum length of the grapple shot
-        /// </summary>
-        private int grappleLength = 8;
-
-        /// <summary>
-        /// How far the grapple traveled during a shot
-        /// </summary>
-        private int grappleShotLength;
-
         /// <summary>
         /// the unit vector that contains the direction of movement
         /// </summary>
         private Point movingDirection = new Point(0, 0);
-
-        /// <summary>
-        /// the current size of the grapple. Increases as the grapple is shot out and decreases as the grapple is pulled in
-        /// </summary>
-        private int grappleSize = 0;
-
-        /// <summary>
-        /// rotation variable for drawing the grapple in the correct direction
-        /// </summary>
-        private float rotation;
-
         /// <summary>
         /// indicates whether the dude has moved
         /// </summary>
@@ -257,7 +206,6 @@ namespace GrappleGame
         /// Keeps track of the current height of the dude
         /// </summary>
         private float height;
-
         /// <summary>
         /// keeps track of height difference between dude and ground
         /// </summary>
@@ -342,46 +290,46 @@ namespace GrappleGame
                 case Visibility.Hidden:
                     sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
                     break;
-                case Visibility.Covered:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    break;
-                case Visibility.Covering:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    switch (currentMovingDirection)
-                    {
-                        case Direction.Up:
-                            //sb.Draw(texture, new Vector2(pixelPosition.X, previousPosition.Y * Constants.tilesize), new Rectangle(Constants.tilesize * drawFrame, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Left:
-                            sb.Draw(texture, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, 0, Constants.tilesize - ((int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Down:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize))), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Right:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                    }
-                    break;
-                case Visibility.Uncovering:
-                    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                    switch (currentMovingDirection)
-                    {
-                        case Direction.Up:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Left:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Down:
-                            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                        case Direction.Right:
-                            sb.Draw(texture, newPosition * Constants.tilesize, new Rectangle(Constants.tilesize * drawFrame + Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), 0, (int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-                            break;
-                    }
-                    break;
+                //case Visibility.Covered:
+                //    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
+                //    break;
+                //case Visibility.Covering:
+                //    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
+                //    switch (currentMovingDirection)
+                //    {
+                //        case Direction.Up:
+                //            //sb.Draw(texture, new Vector2(pixelPosition.X, previousPosition.Y * Constants.tilesize), new Rectangle(Constants.tilesize * drawFrame, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Left:
+                //            sb.Draw(texture, new Vector2(previousPosition.X * Constants.tilesize, pixelPosition.Y), new Rectangle(Constants.tilesize * drawFrame + (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, 0, Constants.tilesize - ((int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Down:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize - ((int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize))), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Right:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //    }
+                //    break;
+                //case Visibility.Uncovering:
+                //    sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
+                //    switch (currentMovingDirection)
+                //    {
+                //        case Direction.Up:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)(previousPosition.Y * Constants.tilesize) - (int)pixelPosition.Y), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Left:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, (int)(previousPosition.X * Constants.tilesize) - (int)pixelPosition.X, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Down:
+                //            sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, (int)pixelPosition.Y - (int)(previousPosition.Y * Constants.tilesize)), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //        case Direction.Right:
+                //            sb.Draw(texture, newPosition * Constants.tilesize, new Rectangle(Constants.tilesize * drawFrame + Constants.tilesize - ((int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize)), 0, (int)pixelPosition.X - (int)(previousPosition.X * Constants.tilesize), Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+                //            break;
+                //    }
+                //    break;
                 case Visibility.Hiding:
                     sb.Draw(texture, pixelPosition, new Rectangle(Constants.tilesize * drawFrame, 0, Constants.tilesize, Constants.tilesize), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
                     switch (currentMovingDirection)
@@ -418,53 +366,6 @@ namespace GrappleGame
                             break;
                     }
                     break;
-            }
-            switch (currentGrapple)
-            {
-                case Grapple.Extending:
-                    switch (currentMovingDirection)
-                    {
-                        case Direction.Right:
-                            sb.Draw(grapple, new Vector2(pixelPosition.X + (2 * Constants.tilesize) + grappleSize, pixelPosition.Y + Constants.tilesize),
-                            new Rectangle(0, 0, Constants.tilesize + grappleSize, Constants.tilesize), Color.White, rotation, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                            break;
-                        case Direction.Left:
-                            sb.Draw(grapple, new Vector2(pixelPosition.X - Constants.tilesize - grappleSize, pixelPosition.Y),
-                            new Rectangle(0, 0, Constants.tilesize + grappleSize, Constants.tilesize), Color.White, rotation, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                            break;
-                        case Direction.Up:
-                            sb.Draw(grapple, new Vector2(pixelPosition.X + Constants.tilesize, pixelPosition.Y - Constants.tilesize - grappleSize),
-                            new Rectangle(0, 0, Constants.tilesize + grappleSize, Constants.tilesize), Color.White, rotation, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                            break;
-                        case Direction.Down:
-                            sb.Draw(grapple, new Vector2(pixelPosition.X, pixelPosition.Y + (2 * Constants.tilesize) + grappleSize),
-                            new Rectangle(0, 0, Constants.tilesize + grappleSize, Constants.tilesize), Color.White, rotation, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                            break;
-                    }
-                    break;
-                case Grapple.Hit:
-                    switch (currentMovingDirection)
-                    {
-                        case Direction.Right:
-                            sb.Draw(grapple, new Vector2(pixelPosition.X + (2 * Constants.tilesize) + grappleSize, pixelPosition.Y + Constants.tilesize),
-                            new Rectangle(0, Constants.tilesize, Constants.tilesize + grappleSize, Constants.tilesize), Color.White, rotation, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                            break;
-                        case Direction.Left:
-                            sb.Draw(grapple, new Vector2(pixelPosition.X - Constants.tilesize - grappleSize, pixelPosition.Y),
-                            new Rectangle(0, Constants.tilesize, Constants.tilesize + grappleSize, Constants.tilesize), Color.White, rotation, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                            break;
-                        case Direction.Up:
-                            sb.Draw(grapple, new Vector2(pixelPosition.X + Constants.tilesize, pixelPosition.Y - Constants.tilesize - grappleSize),
-                            new Rectangle(0, Constants.tilesize, Constants.tilesize + grappleSize, Constants.tilesize), Color.White, rotation, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                            break;
-                        case Direction.Down:
-                            sb.Draw(grapple, new Vector2(pixelPosition.X, pixelPosition.Y + (2 * Constants.tilesize) + grappleSize),
-                            new Rectangle(0, Constants.tilesize, Constants.tilesize + grappleSize, Constants.tilesize), Color.White, rotation, Vector2.Zero, 1f, SpriteEffects.None, 0.9f);
-                            break;
-                    }
-                    break;
-                case Grapple.Miss:
-                    goto case Grapple.Hit;
             }
         }
         //this is a useless comment delete if seen
@@ -611,9 +512,6 @@ namespace GrappleGame
                 case "Walk":
                     currentAction = Action.Walking;
                     currentActionState = ActionState.Starting;
-                    break;
-                case "Grapple":
-                    currentGrapple = Grapple.Starting;
                     break;
                 default:
                     break;
@@ -786,7 +684,6 @@ namespace GrappleGame
                     if (walkFrame == 1)
                         walkFrame = 2;
                     else walkFrame = 1;
-                    rotation = -1.57f;
                     break;
                 case Direction.Up:
                     movingDirection.X = 0;
@@ -794,7 +691,6 @@ namespace GrappleGame
                     if (walkFrame == 4)
                         walkFrame = 5;
                     else walkFrame = 4;
-                    rotation = 1.57f;
                     break;
                 case Direction.Right:
                     movingDirection.X = 1;
@@ -802,7 +698,6 @@ namespace GrappleGame
                     if (walkFrame == 7)
                         walkFrame = 8;
                     else walkFrame = 7;
-                    rotation = (float)(Math.PI);
                     break;
                 case Direction.Left:
                     movingDirection.X = -1;
@@ -810,7 +705,6 @@ namespace GrappleGame
                     if (walkFrame == 10)
                         walkFrame = 11;
                     else walkFrame = 10;
-                    rotation = 0f;
                     break;
             }
         }
@@ -855,8 +749,6 @@ namespace GrappleGame
                 }
                 
             }
-            if (currentGrapple != Grapple.Static)
-                updateGrappling(ref map);
             if (currentCharacterEditing != CharacterEditing.None)
                 CharacterInput();
             updateVisiblity(ref map);
@@ -869,14 +761,14 @@ namespace GrappleGame
                     int i = 0;
                     while (true)
                     {
-                        if (height > map.tileData[(int)tilePosition.X, (int)tilePosition.Y + i].height)
+                        if (height > map.tileData[(int)tilePosition.X, (int)tilePosition.Y + i].tileData.height)
                         {
                             i++;
                             height--;
                         }
                         else
                         {
-                            height = map.tileData[(int)tilePosition.X, (int)tilePosition.Y + i].height;
+                            height = map.tileData[(int)tilePosition.X, (int)tilePosition.Y + i].tileData.height;
                             tilePosition.Y += i;
                             currentActionState = ActionState.InProgress;
                             goto case ActionState.InProgress;
@@ -931,21 +823,16 @@ namespace GrappleGame
             }
             tileClass oldTile = map.tileData[(int)previousPosition.X, (int)previousPosition.Y];
             tileClass newTile = map.tileData[(int)newPosition.X, (int)newPosition.Y];
-            heightDifOld = height - oldTile.height;
-            heightDifNew = height - newTile.height;
-            if (oldTile.coverage == newTile.coverage)
+            heightDifOld = height - oldTile.tileData.height;
+            heightDifNew = height - newTile.tileData.height;
+            if (oldTile.objectData.height == newTile.objectData.height)
             {
-                if (oldTile.coverage == -1)
+                if (oldTile.objectData.height == 0)
                 {
                     currentVisibility = Visibility.Normal;
                     return;
                 }
-                if (oldTile.coverage == 0)
-                {
-                    currentVisibility = Visibility.Covered;
-                    return;
-                }
-                if (oldTile.coverage > 1)
+                if (oldTile.objectData.height > 1)
                 {
                     currentVisibility = Visibility.Hidden;
                     return;
@@ -953,18 +840,10 @@ namespace GrappleGame
             }
             else
             {
-                if (oldTile.coverage == 0 && newTile.coverage > 1)
-                    currentVisibility = Visibility.Hidden;
-                if (oldTile.coverage > 1 && newTile.coverage == 0)
-                    currentVisibility = Visibility.Covered;
-                if (oldTile.coverage == -1 && newTile.coverage == 0)
-                    currentVisibility = Visibility.Covering;
-                if (oldTile.coverage == 0 && newTile.coverage == -1)
-                    currentVisibility = Visibility.Uncovering;
-                if (oldTile.coverage == -1 && newTile.coverage > 1)
-                    currentVisibility = Visibility.Hiding;
-                if (oldTile.coverage > 1 && newTile.coverage == -1)
+                if (oldTile.objectData.height > 1 && newTile.objectData.height == 0)
                     currentVisibility = Visibility.Unhiding;
+                if (oldTile.objectData.height == 0 && newTile.objectData.height > 1)
+                    currentVisibility = Visibility.Hiding;
             }
         }
 
@@ -982,13 +861,13 @@ namespace GrappleGame
                     {//if dude is moving inside the map
                         tileClass startingTile = map.tileData[(int)tilePosition.X, (int)tilePosition.Y];
                         tileClass endingTile = map.tileData[(int)tilePosition.X + movingDirection.X, (int)tilePosition.Y + movingDirection.Y];
-                        if (startingTile == null || (!endingTile.impassible && Math.Abs(startingTile.height - endingTile.height) <= 0.5f
-                            && endingTile.coverage != 1f) || editor)
+                        if (startingTile == null || (!endingTile.tileData.impassible && Math.Abs(startingTile.tileData.height - endingTile.tileData.height) <= 0.5f
+                            && endingTile.objectData.height != 1f) || editor)
                         {//if target tile is movable to
                             //move approved, start moving process
                             tilePosition.X += movingDirection.X;
                             tilePosition.Y += movingDirection.Y;
-                            height = endingTile.height;
+                            height = endingTile.tileData.height;
                             currentActionState = ActionState.InProgress;
                             goto case ActionState.InProgress;
                         }
@@ -1017,112 +896,6 @@ namespace GrappleGame
             }
 
         }
-
-        /// <summary>
-        /// performs all calculations pertaining to the dude's grappling action
-        /// </summary>
-        /// <param name="map"></param>
-        private void updateGrappling(ref Map map)
-        {
-            switch (currentGrapple)
-            {
-                case Grapple.Starting://determines grapple shot length, determines if player is grappling to new position
-                    currentGrapple = Grapple.Extending;
-                    for (int i = 1; i < grappleLength; i++)
-                    {
-                        if (tilePosition.X + (movingDirection.X * i) >= 0 && tilePosition.X + (movingDirection.X * i) < map.SizeX && tilePosition.Y + (movingDirection.Y * i) >= 0 && tilePosition.Y + (movingDirection.Y * i) < map.SizeY)
-                        {//is grapple inside map?
-                            tileClass startingTile = map.tileData[(int)tilePosition.X, (int)tilePosition.Y];
-                            tileClass endingTile = map.tileData[(int)tilePosition.X + (movingDirection.X * i), (int)tilePosition.Y + (movingDirection.Y * i)];
-                            float alteredcoverage = endingTile.coverage > -1 ? endingTile.coverage : 0;
-                            if ((endingTile.grappable == true && endingTile.height == startingTile.height) || (alteredcoverage == 1f && endingTile.height == startingTile.height) || endingTile.height > startingTile.height || (endingTile.height < startingTile.height && endingTile.height + alteredcoverage > startingTile.height))
-                            {
-                                grappleShotLength = i - 1;
-                                tilePosition.Y += grappleShotLength * movingDirection.Y;
-                                tilePosition.X += grappleShotLength * movingDirection.X;
-                                goto case Grapple.Extending;
-                            }
-                        }
-                    }
-                    grappleShotLength = grappleLength - 2;
-                    goto case Grapple.Extending;
-                case Grapple.Extending://initial extending of the grapple
-                    if (grappleSize < (grappleShotLength * Constants.tilesize))
-                        grappleSize += (grappleSpeed * 2);
-                    else
-                    {
-                        grappleSize = grappleShotLength * Constants.tilesize;
-                        if (pixelPosition != Constants.tilesize * tilePosition)
-                        {
-                            currentGrapple = Grapple.Hit;
-                            goto case Grapple.Hit;
-                        }
-                        else
-                        {
-                            currentGrapple = Grapple.Miss;
-                            goto case Grapple.Miss;
-                        }
-                    }
-                    break;
-                case Grapple.Hit:
-                    if (pixelPosition != Constants.tilesize * tilePosition)//controls player moving to new position if new position was calculated
-                    {
-                        if (Math.Abs(pixelPosition.X + (grappleSpeed * movingDirection.X) - (tilePosition.X * Constants.tilesize)) <= Math.Abs(pixelPosition.X - (tilePosition.X * Constants.tilesize)) &&
-                        Math.Abs(pixelPosition.Y + (grappleSpeed * movingDirection.Y) - (tilePosition.Y * Constants.tilesize)) <= Math.Abs(pixelPosition.Y - (tilePosition.Y * Constants.tilesize)))
-                        {
-                            pixelPosition.X += movingDirection.X * grappleSpeed;
-                            pixelPosition.Y += movingDirection.Y * grappleSpeed;
-                            grappleSize -= grappleSpeed;
-                        }
-                        if (pixelPosition == Constants.tilesize * tilePosition)
-                        {
-                            charMoved = true;
-                            pixelPosition = tilePosition * Constants.tilesize;
-                            grappleSize = 0;
-                            if (map.tileData[(int)tilePosition.X, (int)tilePosition.Y].impassible == true)
-                            {
-                                tilePosition.X -= grappleShotLength * movingDirection.X;
-                                tilePosition.Y -= grappleShotLength * movingDirection.Y;
-                                pixelPosition = tilePosition * Constants.tilesize;
-                                //set the vibration controls here
-                                PlayerHasBeenHurt();
-                                Health--;
-                            }
-                        }
-                    }
-                    else//grapple shot finished, set to static
-                    {
-                        grappleSize = 0;
-                        currentGrapple = Grapple.Finishing;
-                        goto case Grapple.Finishing;
-                    }
-                    break;
-                case Grapple.Miss:
-                    if (grappleSize > 0)//unextends grapple if new position not needed
-                        grappleSize -= grappleSpeed * 2;
-                    else//grapple shot finished, set to static
-                    {
-                        grappleSize = 0;
-                        currentGrapple = Grapple.Finishing;
-                        goto case Grapple.Finishing;
-                    }
-                    break;
-                case Grapple.Finishing:
-                    pixelPosition = tilePosition*32;
-                    if (height > map.tileData[(int)tilePosition.X, (int)tilePosition.Y].height + 0.5)
-                    {
-                        currentAction = Action.Falling;
-                        currentActionState = ActionState.Starting;
-                    }
-                    goto case Grapple.Done;
-                case Grapple.Done:
-                    //call queue, if has prepicked input, go to that, else go to standby and standing action
-                    charMoved = true;
-                    currentGrapple = Grapple.Static;
-                    break;
-            }
-        }
-
         /// <summary>
         /// sends vibration to gamepad if dude is hurt
         /// </summary>

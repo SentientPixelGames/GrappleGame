@@ -19,7 +19,6 @@ namespace GrappleGame
         public List<TransportTile> transporttiles = new List<TransportTile>();
         public int Index;
         public bool mapOn;
-        List<float[,]> objectList = new List<float[,]>();
         textFiles textFile;
         tileClass[,] TileData;
         int[,] minimapSet;
@@ -61,23 +60,14 @@ namespace GrappleGame
 
         Random rndNUM = new Random();
 
-        public Map(/*int MapSizeX, int MapSizeY, */Editor editor, Dude theDude, ContentManager Content, String MapName, Texture2D[] tile, Texture2D[] entity)
+        public Map(Editor editor, Dude theDude, ContentManager Content, String MapName, Tile[] tiles, Object[] objects)
         {
-            //object coverage layouts
-            objectList.Add(new float[,] { { 0 } });//0, only a placeholder
-            objectList.Add(new float[,] { { 2, 2, 2 }, { 2, 2, 2 }, { 0, 1, 0 }, { -1, -1, -1 } });//1
-            objectList.Add(new float[,] { { 1, 1 }, { 1, 1 } });//2
-            objectList.Add(new float[,] { { 1, 1 }, { 1, 1 } });//3
-            objectList.Add(new float[,] { { 1, 1 }, { 1, 1 } });//4
-            objectList.Add(new float[,] { { 1 } });//5
-            objectList.Add(new float[,] { { 0, 0 } , { 1, 1 }});//6
-            objectList.Add(new float[,] { { 1, 1, 1, 1, 1, -1 }, { 1, 1, 1, 1, 1, 1 }, { 1, 1, 1, 1, 1, 1 }, { 1, 1, 1, 1, 1, 1 }, { -1, 0, 1, 1, 0, 0 }, { 0, 0, 1, 1, 0, 0 }, { -1, -1, -1, 0, -1, -1 } });//7
             this.MapName = MapName;
             calculateSize();
             this.theDude = theDude;
             minimapSet = new int[this.sizeX, this.sizeY];
             this.editor = editor;
-            Load(Content, tile, entity);
+            Load(Content, tiles, objects);
         }
 
         private void calculateSize()
@@ -133,21 +123,43 @@ namespace GrappleGame
             {
                 for (int y = minbufferY; y < maxbufferY; y++)
                 { 
-                    tileData[x, y].Draw(spriteBatch, map, tileData[(int)theDude.tilePosition.X, (int)theDude.tilePosition.Y].height);
+                    tileData[x, y].DrawTile(spriteBatch, map, tileData[(int)theDude.tilePosition.X, (int)theDude.tilePosition.Y].tileData.height);
+                    tileData[x, y].DrawObject(spriteBatch, theDude.isHidden());
                     if (editor.editorOn == true && editor.currentEditorState == Editor.EditorState.Edit)
                     {
-                        if(editor.currentEdittingState == Editor.Edit.Height)
+                        if (editor.currentEdittingState == Editor.Edit.Height)
                             tileData[x, y].HeightDraw(spriteBatch, font);//draws heights on top of tiles
                         else if (editor.currentEdittingState == Editor.Edit.Impassible)
                         {
-                            int impassible = TileData[x, y].impassible ? 1 : 0;
+                            TileData[x, y].ImpassibleDraw(spriteBatch, font);
+                            int impassible = TileData[x, y].tileData.impassible ? 1 : 0;
                             spriteBatch.DrawString(font, impassible.ToString(), new Vector2(x * 32 + (32 / 3), y * 32), Color.Black, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
                         }
-                        else if (editor.currentEdittingState == Editor.Edit.Grappable)
+                        else if (editor.currentEdittingState == Editor.Edit.ObjectDepth_Main)
                         {
-                            int grappable = TileData[x, y].grappable ? 1 : 0;
-                            spriteBatch.DrawString(font, grappable.ToString(), new Vector2(x * 32 + (32 / 3), y * 32), Color.Black, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
+                            TileData[x, y].MainDepthDraw(spriteBatch, font);
                         }
+                        else if (editor.currentEdittingState == Editor.Edit.ObjectDepth_Secondary)
+                        {
+                            TileData[x, y].SecondaryDepthDraw(spriteBatch, font);
+                        }
+                        else if (editor.currentEdittingState == Editor.Edit.ObjectHeight)
+                        {
+                            TileData[x, y].HeightObjectDraw(spriteBatch, font);
+                        }
+                        else if (editor.currentEdittingState == Editor.Edit.Shadow)
+                        {
+                            TileData[x, y].ShadowDraw(spriteBatch, font);
+                        }
+                        else if (editor.currentEdittingState == Editor.Edit.Solid)
+                        {
+                            TileData[x, y].SolidDraw(spriteBatch, font);
+                        }
+                        else if (editor.currentEdittingState == Editor.Edit.TileDepth)
+                        {
+                            TileData[x, y].TileDepthDraw(spriteBatch, font);
+                        }
+
                     }
                     minimapSet[x, y] = 1;//set visible range on minimap visible if not already
                 }
@@ -165,11 +177,11 @@ namespace GrappleGame
         {
             #region minimap draw
             if (mapOn == true) //This nested for loop draws a miniature map in the upper left corner for the player to observe when the "M" is clicked
-            //tilset 4 is not included yet
+            //tilset 4 is not included yet, objects are not included yet, heights are not included yet.
             {
                 int width = graphics.Viewport.Width/sizeX;
                 int height = graphics.Viewport.Height/sizeY;
-                int z;
+                string z;
                 int x1 = 0;
                 int y1 = 0;
                 for (int x = 0; x < width*sizeX; x += width)
@@ -177,48 +189,41 @@ namespace GrappleGame
                     y1 = 0;
                     for (int y = 0; y < height*sizeY; y += height)
                     {
-                        z = this.textfiles.tileSet[x1, y1];
+                        z = this.TileData[x1,y1].tile.minimapColor;
                         if (this.MiniMapSet[x1, y1] == 0)
-                            spriteBatch.Draw(map, new Rectangle((int)x /** theDude.pixelPosition.X*/, (int)y, width, height), Color.Black);
+                            spriteBatch.Draw(map, new Rectangle((int)x, (int)y, width, height), Color.Black);
                         else
                         {
-                            if (z == 0 || z == 5 || z == 6 || z == 12 || z == 13 || z == 17 || z == 23 || z == 31
-                                || z == 32 || z == 33 || z == 37 || z == 38 || z == 39 || z == 40 || z == 41 || z == 42) //grass tiles
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Green);
-
-                            else if (z == 1 || z == 14 || z == 15 || z == 16 || z == 24 || z == 51 || z == 52) // forest tiles
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.DarkGreen);
-
-                            else if (z == 3 || z == 18 || z == 97 || z == 98 || z == 99 || z == 100 || z == 101 || z == 102
-                                || z == 103 || z == 104 || z == 105 || z == 106 || z == 107 || z == 108 || z == 109) //castle tiles
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Gray);
-
-                            else if (z == 2 || z == 8 || z == 9 || z == 10 || z == 11 || z == 43 || z == 44 || z == 45 || //water tiles
-                                z == 46 || z == 47 || z == 48 || z == 49 || z == 50 || z == 110 || z == 111 || z == 112 || z == 113 || z == 114
-                                || z == 115 || z == 116 || z == 117 || z == 118 || z == 119 || z == 120 || z == 121)
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Blue);
-
-                            else if (z == 7) // sand tiles
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Yellow);
-
-                            else if (z == 19 || z == 20 || z == 21 || z == 22 || z == 25 || z == 26 || z == 27 || z == 28 ||
-                               z == 29 || z == 30 || z == 34 || z == 35 || z == 36 || z == 96) //path tiles
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.White);
-
-                            else if (z == 53 || z == 54 || z == 55 || z == 56 || z == 57 || z == 58 || z == 59 // house tiles
-                                || z == 60 || z == 61 || z == 62 || z == 63 || z == 64)
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Purple);
-
-                            else if (z == 65 || z == 66 || z == 67 || z == 68 || z == 72 || z == 73 || z == 74 || z == 75 || z == 76 ||
-                                z == 77 || z == 78 || z == 79 || z == 80 || z == 81 || z == 82 || z == 83 || z == 84 || z == 85 || z == 86 || z == 87
-                                || z == 88 || z == 89 || z == 90 || z == 91 || z == 92 || z == 93 || z == 94 || z == 95) // mountain tiles
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Brown);
-
-                            else if (z == 69 || z == 70 || z == 71) //dock tiles
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.White);
-                            else if (z == 122)
-                                spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Black);
-                            
+                            switch (z)
+                            {
+                                case "green":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Green);
+                                    break;
+                                case "darkgreen":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.DarkGreen);
+                                    break;
+                                case "gray":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Gray);
+                                    break;
+                                case "blue":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Blue);
+                                    break;
+                                case "yellow":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Yellow);
+                                    break;
+                                case "white":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.White);
+                                    break;
+                                case "purple":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Purple);
+                                    break;
+                                case "brown":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Brown);
+                                    break;
+                                case "black":
+                                    spriteBatch.Draw(map, new Rectangle(x, y, width, height), Color.Black);
+                                    break;
+                            }                           
                         }
                         y1++;
                     }
@@ -237,26 +242,29 @@ namespace GrappleGame
         {
             this.editor = editor;
         }
-        public void objectSorter()
+        public void objectSorter(Object[] objects)
         {
-            //add complete sorting capabilities, including height level, tiles, etc
+            //add complete sorting capabilities, including base height level, tiles, etc
             for (int x = 0; x < this.sizeX; x++)
             {
                 for (int y = 0; y < this.SizeY; y++)
                 {
-                    TileData[x, y].coverage = -1;
+                    TileData[x, y].objectData.height = 0;
+                    TileData[x, y].objectData.solid = false;
+                    TileData[x, y].objectData.shadow = 0;//has not been applied yet
                 }
             }
             for (int x = 0; x < this.sizeX; x++)
             {
                 for (int y = 0; y < this.SizeY; y++)
                 {
-                    if (TileData[x, y].entity != null)
+                    if (TileData[x, y].Object != null)
                     {
-                        Rectangle temp = TileData[x, y].entity.Bounds;
+                        Rectangle temp = TileData[x, y].Object.basicTexture.Bounds;
                         int tilesizeX = temp.Width / 32;
                         int tilesizeY = temp.Height / 32;
-                        CalculateMapCoverage(new Rectangle(x, y, tilesizeX, tilesizeY), textFile.entitySet[x, y]);
+                        temp = new Rectangle(x, y, tilesizeX, tilesizeY);
+                        CalculateMapHeights(temp, objects[textFile.objectSet[x, y]]);
                     }
                 }
             }
@@ -265,12 +273,12 @@ namespace GrappleGame
             {
                 for (int x = 0; x < this.SizeX; x++)
                 {
-                    if (TileData[x, y].entity != null)
+                    if (TileData[x, y].Object != null)
                     {
                         bool test = false;
                         foreach (Vector2 sorted_object_positions in Sorted_Objects)
                         {
-                            if (TileData[x, y].tilePosition == sorted_object_positions)
+                            if (TileData[x, y].position == sorted_object_positions)
                             {
                                 test = true;
                                 break;
@@ -284,11 +292,12 @@ namespace GrappleGame
                             {
                                 for (int z = 0; z < this.SizeX; z++)
                                 {
-                                    if (TileData[z, w].entity != null)
+                                    if (TileData[z, w].Object != null)
                                     {
                                         if (z == x && w == y)
                                             continue;
-                                        if (new Rectangle(x, y, TileData[x, y].entity.Width / 32, TileData[x, y].entity.Height / 32).Intersects(new Rectangle(z, w, TileData[z, w].entity.Width / 32, TileData[z, w].entity.Height / 32)))
+                                        if (new Rectangle(x, y, TileData[x, y].Object.basicTexture.Width / 32, TileData[x, y].Object.basicTexture.Height / 32)
+                                            .Intersects(new Rectangle(z, w, TileData[z, w].Object.basicTexture.Width / 32, TileData[z, w].Object.basicTexture.Height / 32)))
                                         {
                                             test = false;
                                         }
@@ -297,7 +306,7 @@ namespace GrappleGame
                             }
                             if (!test)
                             {
-                                Touching_Objects.Add(TileData[x, y].tilePosition);
+                                Touching_Objects.Add(TileData[x, y].position);
                                 while (true) //finds and stores objects that are touching eachother
                                 {
                                     List<Vector2> Objects_To_Add = new List<Vector2>();
@@ -310,9 +319,10 @@ namespace GrappleGame
                                             {
                                                 if (z == T_Object.X && w == T_Object.Y)
                                                     continue;
-                                                if (TileData[z, w].entity != null)
+                                                if (TileData[z, w].Object != null)
                                                 {
-                                                    if (new Rectangle((int)T_Object.X, (int)T_Object.Y, TileData[(int)T_Object.X, (int)T_Object.Y].entity.Width / 32, TileData[(int)T_Object.X, (int)T_Object.Y].entity.Height / 32).Intersects(new Rectangle(z, w, TileData[z, w].entity.Width / 32, TileData[z, w].entity.Height / 32)))
+                                                    if (new Rectangle((int)T_Object.X, (int)T_Object.Y, TileData[(int)T_Object.X, (int)T_Object.Y].Object.basicTexture.Width / 32, TileData[(int)T_Object.X, (int)T_Object.Y].Object.basicTexture.Height / 32)
+                                                        .Intersects(new Rectangle(z, w, TileData[z, w].Object.basicTexture.Width / 32, TileData[z, w].Object.basicTexture.Height / 32)))
                                                     {
                                                         bool alreadyinlistcheck = false;
                                                         foreach (Vector2 object_check in Touching_Objects)
@@ -333,7 +343,7 @@ namespace GrappleGame
                                                             continue;
                                                         else
                                                         {
-                                                            Objects_To_Add.Add(TileData[z, w].tilePosition);
+                                                            Objects_To_Add.Add(TileData[z, w].position);
                                                             all_objects_found = false;
                                                         }
                                                     }
@@ -362,10 +372,10 @@ namespace GrappleGame
                                     for (int counter = 1; counter < list.Length; counter++)
                                     {
                                         Vector2 temp;
-                                        int direction = Sort(new Rectangle((int)list[counter].X, (int)list[counter].Y, TileData[(int)list[counter].X, (int)list[counter].Y].entity.Width / 32, TileData[(int)list[counter].X, (int)list[counter].Y].entity.Height / 32),
-                                            new Rectangle((int)list[counter - 1].X, (int)list[counter - 1].Y, TileData[(int)list[counter - 1].X, (int)list[counter - 1].Y].entity.Width / 32, TileData[(int)list[counter - 1].X, (int)list[counter - 1].Y].entity.Height / 32),
-                                            TileData[(int)list[counter].X, (int)list[counter].Y].entitydepth, TileData[(int)list[counter - 1].X, (int)list[counter - 1].Y].entitydepth,
-                                            textFile.entitySet[(int)list[counter].X, (int)list[counter].Y], textFile.entitySet[(int)list[counter - 1].X, (int)list[counter - 1].Y]);
+                                        int direction = Sort(new Rectangle((int)list[counter].X, (int)list[counter].Y, TileData[(int)list[counter].X, (int)list[counter].Y].Object.basicTexture.Width / 32, TileData[(int)list[counter].X, (int)list[counter].Y].Object.basicTexture.Height / 32),
+                                            new Rectangle((int)list[counter - 1].X, (int)list[counter - 1].Y, TileData[(int)list[counter - 1].X, (int)list[counter - 1].Y].Object.basicTexture.Width / 32, TileData[(int)list[counter - 1].X, (int)list[counter - 1].Y].Object.basicTexture.Height / 32),
+                                            TileData[(int)list[counter].X, (int)list[counter].Y].objectData.mainDepth, TileData[(int)list[counter - 1].X, (int)list[counter - 1].Y].objectData.mainDepth,
+                                            objects[textFile.objectSet[(int)list[counter].X, (int)list[counter].Y]], objects[textFile.objectSet[(int)list[counter - 1].X, (int)list[counter - 1].Y]]);
                                         if (direction == 0) //the object later in the list should be drawn last
                                         {
                                             temp = list[counter];
@@ -377,13 +387,14 @@ namespace GrappleGame
                                 }
                                 for (int counter = 0; counter < list.Length; counter++)
                                 {
-                                    TileData[(int)list[counter].X, (int)list[counter].Y].entitydepth = 0.7f + 0.0001f * counter;
-                                    Sorted_Objects.Add(TileData[(int)list[counter].X, (int)list[counter].Y].tilePosition);
+                                    TileData[(int)list[counter].X, (int)list[counter].Y].objectData.mainDepth = 0.40003f + 0.0001f * counter;
+                                    TileData[(int)list[counter].X, (int)list[counter].Y].objectData.secondaryDepth = TileData[(int)list[counter].X, (int)list[counter].Y].objectData.mainDepth + 0.3f;
+                                    Sorted_Objects.Add(TileData[(int)list[counter].X, (int)list[counter].Y].position);
                                 }
                             }
                             else
                             {
-                                Sorted_Objects.Add(TileData[x, y].tilePosition);
+                                Sorted_Objects.Add(TileData[x, y].position);
                             }
                         }
                     }
@@ -393,12 +404,15 @@ namespace GrappleGame
             {
                 for (int y = 0; y < this.SizeY; y++)
                 {
-                    textFile.depthSet[x, y] = TileData[x, y].entitydepth;
-                    textFile.coverageSet[x, y] = TileData[x, y].coverage;
+                    textFile.depthSet[x, y] = TileData[x, y].objectData.mainDepth;
+                    textFile.objHeightSet[x, y] = TileData[x, y].objectData.height;
+                    int solid = TileData[x, y].objectData.solid == true ? 1 : 0;
+                    textFile.solidSet[x, y] = solid;
+                    textFile.shadowSet[x, y] = TileData[x, y].objectData.shadow;
                 }
             }
         }
-        private void Load(ContentManager Content, Texture2D[] tile, Texture2D[] entity)
+        private void Load(ContentManager Content, Tile[] tiles, Object[] objects)
         {
             font = Content.Load<SpriteFont>("Fonts/words");
             map = Content.Load<Texture2D>("Other/map");
@@ -409,7 +423,9 @@ namespace GrappleGame
             {
                 for (int y = 0; y < this.sizeY; y++)
                 {
-                    TileData[x, y] = new tileClass(x, y, tile[textFile.tileSet[x, y]], textFile.heightSet[x, y], textFile.tileSet[x, y], textFile.impassSet[x, y], textFile.grappleSet[x, y], entity[textFile.entitySet[x, y]], textfiles.depthSet[x, y], textfiles.coverageSet[x, y]);
+                    TileData[x, y] = new tileClass(new Vector2(x, y), tiles[textFile.tileSet[x, y]], objects[textFile.objectSet[x, y]]);
+                    TileData[x, y].loadTileData(1f, textFile.impassSet[x, y], textfiles.heightSet[x, y]);
+                    TileData[x, y].loadObjectData(textFile.depthSet[x, y], textFile.depthSet[x, y] + 0.3f, textFile.objHeightSet[x,y], textFile.solidSet[x, y], textfiles.shadowSet[x,y]);
                 }
             }
             for (int x1 = 0; x1 < this.sizeX; x1++)
@@ -421,42 +437,30 @@ namespace GrappleGame
                 }
             }
         }
-        private void CalculateMapCoverage(Rectangle imageDimensions, int entityNum)
+        private void CalculateMapHeights(Rectangle imageDimensions, Object Object)
         {
             //calculates what parts of the map is covered by objects. Only one coverage type exists per tile, even if objects overlap, so coverage must be selected with priorities.
-            //the priority is as follows: impassible object (1) (tree trunk), overhanging object (>1) (tree branches), shadows (0) (tree shadow), nothing (-1) (no objects/shadows).
-            float[,] coverage = objectList.ElementAt(entityNum);
+            //the priority is as follows: impassible object (1) (tree trunk), overhanging object (>1) (tree branches), nothing (0).
+            float[,] heights = Object.height;
+            float[,] solids = Object.solid;
+            float[,] shadows = Object.shadow;
             for (int i = 0; i < imageDimensions.Width; i++)
             {
                 for (int j = 0; j < imageDimensions.Height; j++)
                 {
-                    if (TileData[imageDimensions.X + i, imageDimensions.Y + j].coverage == 1)
-                        continue;
-                    else if (TileData[imageDimensions.X + i, imageDimensions.Y + j].coverage > 1)
-                    {
-                        if (coverage[j, i] == 1)
-                            TileData[imageDimensions.X + i, imageDimensions.Y + j].coverage = coverage[j, i];
-                        else continue;
-                    }
-                    else if (TileData[imageDimensions.X + i, imageDimensions.Y + j].coverage == 0)
-                    {
-                        if (coverage[j, i] > 0)
-                            TileData[imageDimensions.X + i, imageDimensions.Y + j].coverage = coverage[j, i];
-                        else continue;
-                    }
-                    else if (TileData[imageDimensions.X + i, imageDimensions.Y + j].coverage == -1)
-                    {
-                        if (coverage[j, i] > -1)
-                            TileData[imageDimensions.X + i, imageDimensions.Y + j].coverage = coverage[j, i];
-                        else continue;
-                    }
+                    if (TileData[imageDimensions.X + i, imageDimensions.Y + j].objectData.height < heights[j,i])
+                        TileData[imageDimensions.X + i, imageDimensions.Y + j].objectData.height = heights[j, i];
+                    if (solids[j, i] == 1)
+                        TileData[imageDimensions.X + i, imageDimensions.Y + j].objectData.solid = true;
+                    if (shadows[j, i] == 1)
+                        TileData[imageDimensions.X + i, imageDimensions.Y + j].objectData.shadow = shadows[j, i];
                 }
             }
         }
-        private int Sort(Rectangle baseObject, Rectangle otherObject, float baseDepth, float otherDepth, int baseEntity, int otherEntity)
+        private int Sort(Rectangle baseObject, Rectangle otherObject, float baseDepth, float otherDepth, Object Object1, Object Object2)
         {
-            float[,] BASE = objectList.ElementAt(baseEntity);
-            float[,] other = objectList.ElementAt(otherEntity);
+            float[,] BASE = Object1.height;
+            float[,] other = Object2.height;
             int baseLow = baseObject.Y;
             int otherLow = otherObject.Y;
             int baseRight = baseObject.X;
