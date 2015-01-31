@@ -136,13 +136,13 @@ namespace GrappleGame
         /// </summary>
         /// <param name="spritebatch">XNA tool for drawing</param>
         /// <param name="dudeHeight">The current height of the dude. The tint of the object is dependent on the comparison with the tile height and the dude height.</param>
-        public void DrawObject(SpriteBatch spritebatch, bool hidden)
+        public void DrawObject(SpriteBatch spritebatch, bool hidden, Vector2 dudePosition)
         {
             if (Object != null)
             {
                 if (Object.advancedTexture != null)
                 {
-                    if (hidden)
+                    if (hidden && position.Y - dudePosition.Y > (-2 - Object.basicTexture.Width / 32) && position.Y - dudePosition.Y < 3 && position.X - dudePosition.X > (-3 - Object.basicTexture.Width / 32) && position.X - dudePosition.X < 4)
                         spritebatch.Draw(Object.basicTexture, position * Constants.tilesize, null, Color.Lerp(Color.White, Color.Transparent, 0.5f), 0f, Vector2.Zero, 1, SpriteEffects.None, objectData.mainDepth);
                     else spritebatch.Draw(Object.basicTexture, position * Constants.tilesize, null, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, objectData.mainDepth);
                     spritebatch.Draw(Object.advancedTexture, position * Constants.tilesize, null, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, objectData.secondaryDepth);
