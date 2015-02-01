@@ -124,7 +124,7 @@ namespace GrappleGame
                 for (int y = minbufferY; y < maxbufferY; y++)
                 { 
                     tileData[x, y].DrawTile(spriteBatch, map, tileData[(int)theDude.tilePosition.X, (int)theDude.tilePosition.Y].tileData.height);
-                    tileData[x, y].DrawObject(spriteBatch, theDude.isHidden());
+                    tileData[x, y].DrawObject(spriteBatch, theDude.isHidden(), theDude.tilePosition);
                     if (editor.editorOn == true && editor.currentEditorState == Editor.EditorState.Edit)
                     {
                         if (editor.currentEdittingState == Editor.Edit.Height)
