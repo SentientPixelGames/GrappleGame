@@ -198,6 +198,11 @@ namespace GrappleGame
         Constants Constants = new Constants();
 
         /// <summary>
+        /// Create an instance of the character event handler for the dude...needs to update with each map the dude is on
+        /// </summary>
+        Constants.CharacterEventHandler characterEventHandler;
+
+        /// <summary>
         /// The current walking image the dude is on. 
         /// </summary>
         private int walkFrame = 0;
@@ -235,7 +240,7 @@ namespace GrappleGame
         /// <summary>
         /// indicates whether the dude has moved
         /// </summary>
-        public bool dudeMoved = false;
+        public volatile bool dudeMoved = false;
 
         /// <summary>
         /// the unit vector that contains the direction the dude is facing
@@ -366,6 +371,8 @@ namespace GrappleGame
                     break;
                 case Action.Attacking:
                     drawFrame = standFrame;
+                    break;
+                case Action.Talking:
                     break;
             }
             switch (currentVisibility)
@@ -678,7 +685,7 @@ namespace GrappleGame
         /// Tracks user input of the game through the keyboard. Default control scheme
         /// </summary>
         /// <param name="keys">Tracks the current state of the keyboard</param>
-        public void UserInput(KeyboardState keys)
+        public void UserInput(KeyboardState keys, KeyboardState oldkeys)
         {
             if (keys.IsKeyDown(Keys.P)) //zoom in button, camera zooms in on map
                 CameraMagnification(keys);
@@ -716,12 +723,20 @@ namespace GrappleGame
                         return;
                     }
                 }
-                //if (keys.IsKeyDown(Keys.Space))
-                //{
-                //    currentAction = Action.Attacking;
-                //    currentActionState = ActionState.Starting;
-                //    return;
-                //}
+                if (keys.IsKeyUp(Keys.Space) && oldkeys.IsKeyDown(Keys.Space))
+                {
+                    switch (currentAction)
+                    {
+                        default:
+                            currentAction = Action.Attacking;
+                            currentActionState = ActionState.Starting;
+                            break;
+                        case Action.Talking:
+                            currentActionState = ActionState.InProgress;
+                            break;
+                    }
+                    return;
+                }
                 if (keys.IsKeyDown(Keys.W))
                 {
                     if (currentGrapple == Grapple.Static)
@@ -774,7 +789,22 @@ namespace GrappleGame
                         return;
                     }
                 }
-                
+
+            }
+
+
+            //Buttons that can be pressed while currently operating in some action
+            else
+            {
+                if (keys.IsKeyUp(Keys.Space) && oldkeys.IsKeyDown(Keys.Space))
+                {
+                    switch (currentAction)
+                    {
+                        case Action.Talking:
+                            currentActionState = ActionState.InProgress;
+                            break;
+                    }
+                }
             }
         }
 
@@ -834,7 +864,7 @@ namespace GrappleGame
         /// Tracks user input of the game through an xbox 360 controller
         /// </summary>
         /// <param name="gamePad1">keeps track of state of xbox 360 controller</param>
-        public void UserInput(GamePadState gamePad1)
+        public void UserInput(GamePadState gamePad1, GamePadState oldgamePad1)
         {
             if (currentActionState == ActionState.Standby)
             {
@@ -910,7 +940,15 @@ namespace GrappleGame
                         return;
                     }
                 }
-
+                if (gamePad1.Buttons.A == ButtonState.Released && oldgamePad1.Buttons.A == ButtonState.Pressed)
+                {
+                    switch (currentAction)
+                    {
+                        case Action.Talking:
+                            currentActionState = ActionState.InProgress;
+                            break;
+                    }
+                }
 
                 if (gamePad1.ThumbSticks.Right.Y >= .5f)
                 {
@@ -958,6 +996,20 @@ namespace GrappleGame
                         setFacingDirectionConstants();
                         setMovingDirectionConstants();
                         return;
+                    }
+                }
+            }
+
+            //Buttons that can be pressed while currently operating in some action
+            else
+            {
+                if(gamePad1.Buttons.A == ButtonState.Released && oldgamePad1.Buttons.A == ButtonState.Pressed)
+                {
+                    switch (currentAction)
+                    {
+                        case Action.Talking:
+                            currentActionState = ActionState.InProgress;
+                            break;
                     }
                 }
             }
@@ -1070,11 +1122,46 @@ namespace GrappleGame
                     //case Action.Damaged:
 
                     //    break;
-                    //case Action.Talking:
-
-                    // break;
+                    case Action.Talking:
+                        switch (currentActionState)
+                        {
+                            case ActionState.InProgress:
+                                if (characterEventHandler(3, null, map.tileData[(int)tilePosition.X + (int)facingDirection.X, (int)tilePosition.Y + (int)facingDirection.Y].tileData.characterOnTile))
+                                {
+                                    currentActionState = ActionState.Finishing;
+                                }
+                                else currentActionState = ActionState.Standby;
+                                break;
+                        }
+                        break;
                 }
-                
+
+            }
+            else if(currentActionState == ActionState.Standby && currentGrapple == Grapple.Static)
+            {
+                switch (currentAction)
+                {
+                    case Action.Standing:
+                        if (tilePosition.X + facingDirection.X >= 0 && tilePosition.X + facingDirection.X < map.SizeX && tilePosition.Y + facingDirection.Y >= 0 && 
+                            tilePosition.Y + facingDirection.Y < map.SizeY && map.tileData[(int)tilePosition.X + (int)facingDirection.X, (int)tilePosition.Y + (int)facingDirection.Y].tileData.characterOnTile != -1)
+                        {
+                            characterEventHandler(2, currentFacingDirection.ToString(), map.tileData[(int)tilePosition.X + (int)facingDirection.X, (int)tilePosition.Y + (int)facingDirection.Y].tileData.characterOnTile);
+                            currentAction = Action.Talking;
+                            currentActionState = ActionState.Standby;
+                            dudeMoved = false;
+                        }
+                        break;
+                    case Action.Talking:
+                        switch (currentActionState)
+                        {
+                            case ActionState.Standby:
+                                break;
+                            case ActionState.InProgress:
+                                characterEventHandler(3, null, map.tileData[(int)tilePosition.X + (int)facingDirection.X, (int)tilePosition.Y + (int)facingDirection.Y].tileData.characterOnTile);
+                                break;
+                        }
+                        break;
+                }
             }
             if (currentGrapple != Grapple.Static)
                 updateGrappling(ref map);
@@ -1207,7 +1294,7 @@ namespace GrappleGame
                         tileClass startingTile = map.tileData[(int)tilePosition.X, (int)tilePosition.Y];
                         tileClass endingTile = map.tileData[(int)tilePosition.X + movingDirection.X, (int)tilePosition.Y + movingDirection.Y];
                         if (startingTile == null || (!endingTile.tileData.impassible && Math.Abs(startingTile.tileData.height - endingTile.tileData.height) <= 0.5f
-                            && !endingTile.objectData.solid) || editor)
+                            && !endingTile.objectData.solid && endingTile.tileData.characterOnTile == -1) || editor)
                         {//if target tile is movable to
                             //move approved, start moving process
                             tilePosition.X += movingDirection.X;
@@ -1260,8 +1347,8 @@ namespace GrappleGame
                         {//is grapple inside map?
                             tileClass startingTile = map.tileData[(int)tilePosition.X, (int)tilePosition.Y];
                             tileClass endingTile = map.tileData[(int)tilePosition.X + (movingDirection.X * i), (int)tilePosition.Y + (movingDirection.Y * i)];
-                            if ((endingTile.objectData.height == 1f && endingTile.tileData.height == startingTile.tileData.height) || 
-                                endingTile.tileData.height > startingTile.tileData.height || 
+                            if ((endingTile.objectData.height == 1f && endingTile.tileData.height == startingTile.tileData.height) ||
+                                endingTile.tileData.height > startingTile.tileData.height ||
                                 (endingTile.tileData.height < startingTile.tileData.height && endingTile.tileData.height + endingTile.objectData.height > startingTile.tileData.height))
                             {
                                 grappleShotLength = i - 1;
@@ -1335,7 +1422,7 @@ namespace GrappleGame
                     }
                     break;
                 case Grapple.Finishing:
-                    pixelPosition = tilePosition*32;
+                    pixelPosition = tilePosition * 32;
                     if (height > map.tileData[(int)tilePosition.X, (int)tilePosition.Y].tileData.height + 0.5)
                     {
                         currentAction = Action.Falling;
@@ -1356,6 +1443,12 @@ namespace GrappleGame
         public void PlayerHasBeenHurt()
         {
             GamePad.SetVibration(PlayerIndex.One, 1.0f, 1.0f);
+        }
+
+
+        public void updateCharacterEventHandler(ref Map map)
+        {
+            characterEventHandler = map.characterEventHandler;
         }
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Media;
 
 namespace GrappleGame
 {
-    public class mainScript: Microsoft.Xna.Framework.Game
+    public class mainScript : Microsoft.Xna.Framework.Game
     {
         #region Global Variables
         GraphicsDeviceManager graphics;
@@ -22,15 +22,19 @@ namespace GrappleGame
         Tile[] tiles = new Tile[93];
         Object[] objects = new Object[17];
         Texture2D map; //blank image for map
+        Texture2D conversationBlock;
         SpriteFont font;
         KeyboardState keys;
+        KeyboardState oldkeys;
+        GamePadState gamepadstate1;
+        GamePadState oldgamepadstate1;
         MouseState mouse = Mouse.GetState();
         Constants Constants = new Constants();
         Map currentMap;
         MapNames Load_SaveMapNames = new MapNames();
         List<Map> Maps;
         List<string[]> MapName;
-        int[] Editing_MapIndex = {0,0,0,0,0};
+        int[] Editing_MapIndex = { 0, 0, 0, 0, 0 };
         Vector2[] Editing_TransportPositions = new Vector2[2];
         MouseState oldmouse;
         UserInput userinput = new UserInput();
@@ -139,7 +143,7 @@ namespace GrappleGame
             tiles[69] = new Tile(69, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge2"), false, "green");
             #endregion
             #region Tiles 70-79
-           
+
             tiles[70] = new Tile(70, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge3"), false, "green");
             tiles[71] = new Tile(71, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge4"), false, "green");
             tiles[72] = new Tile(72, Content.Load<Texture2D>("Tiles/grass&edge/gtileedge5"), false, "green");
@@ -164,22 +168,22 @@ namespace GrappleGame
             tiles[89] = new Tile(89, Content.Load<Texture2D>("Tiles/grass&water/grasswater3"), true, "blue");
             #endregion
             #region Tiles 90-99
-            
+
             tiles[90] = new Tile(90, Content.Load<Texture2D>("Tiles/grass&water/grasswater4"), true, "blue");
             tiles[91] = new Tile(91, Content.Load<Texture2D>("Other/Black"), true, "black");
             tiles[92] = new Tile(92, Content.Load<Texture2D>("Tiles/house/House Flooring"), false, "orange");
             #endregion
             #endregion
             #region special tiles
-            map = Content.Load<Texture2D>("Other/map");            
+            map = Content.Load<Texture2D>("Other/map");
             #endregion
             #region Character Textures
             charactersprites[0] = Content.Load<Texture2D>("Characters/NPCs/Knight");
-            charactersprites[0].Name = "Knight";
+            charactersprites[0].Name = "Characters/NPCs/Knight";
             charactersprites[1] = Content.Load<Texture2D>("Characters/NPCs/townmember1");
-            charactersprites[1].Name = "townmember1";
+            charactersprites[1].Name = "Characters/NPCs/townmember1";
             charactersprites[2] = Content.Load<Texture2D>("Characters/NPCs/townmember2");
-            charactersprites[2].Name = "townmember2";
+            charactersprites[2].Name = "Characters/NPCs/townmember2";
             #endregion
             #region objects
             objects[0] = null;
@@ -210,44 +214,47 @@ namespace GrappleGame
             objects[7] = new Object(7, Content.Load<Texture2D>("Objects/Shadow1"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[8] = new Object(8, Content.Load<Texture2D>("Objects/Shadow2"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[9] = new Object(9, Content.Load<Texture2D>("Objects/Shadow3"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[10] = new Object(10, Content.Load<Texture2D>("Objects/Shadow4"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[11] = new Object(11, Content.Load<Texture2D>("Objects/Shadow5"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[12] = new Object(12, Content.Load<Texture2D>("Objects/Shadow6"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[13] = new Object(13, Content.Load<Texture2D>("Objects/Shadow7"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[14] = new Object(14, Content.Load<Texture2D>("Objects/Shadow8"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[15] = new Object(15, Content.Load<Texture2D>("Objects/Shadow9"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
             objects[16] = new Object(16, Content.Load<Texture2D>("Objects/Shadow10"), null,
                 new float[,] { { 0 } },
                 new float[,] { { 0 } },
-                new float[,] { { 0 } });
+                new float[,] { { 1 } });
 
+            #endregion
+            #region HUD
+            conversationBlock = Content.Load<Texture2D>("Game HUD/TextBox");
             #endregion
             font = Content.Load<SpriteFont>("Fonts/words");
             editor = new Editor(0);
@@ -266,7 +273,9 @@ namespace GrappleGame
                 Maps[Maps.Count - 1].Index = Maps.Count - 1;
             }
             currentMap = Maps[0];
+            theDude.updateCharacterEventHandler(ref currentMap);//set the first maps characterevent handler to the dude
             Load_SaveMapNames.LoadTransportTiles(Maps, editor.GetTransportTile, editor.GetArrow);
+            Load_SaveMapNames.LoadCharacters(Maps, Content);
 
         }
         protected override void UnloadContent()
@@ -275,20 +284,32 @@ namespace GrappleGame
         }
         protected override void Update(GameTime gameTime)
         {
-            currentMap.setTheDude(theDude);
-            currentMap.setTheEditor(editor);
-            currentMap.Update();
-            currentMap.TransportUpdate(ref currentMap, ref theDude);
-            int k;
-            keys = Keyboard.GetState();
-            GamePadState gamepadstate1 = GamePad.GetState(PlayerIndex.One);
             oldmouse = mouse;
             mouse = Mouse.GetState();
+            currentMap.setTheDude(theDude);
+            currentMap.setTheEditor(editor);
+            currentMap.Update(mouse, oldmouse);
+            currentMap.TransportUpdate(ref currentMap, ref theDude);
+            int k;
+            oldkeys = keys;
+            keys = Keyboard.GetState();
+            oldgamepadstate1 = gamepadstate1;
+            gamepadstate1 = GamePad.GetState(PlayerIndex.One);
+
+
+            //REMOVE IN FINAL
+            //This checks to see if we are currently editing a character, if we are then we don't want anyother editor or keyboard checks
+            //happening so they should all be skipped
+            if (currentMap.GetCharacterEditingState != -1)
+            {
+                goto CharacterJump;
+            }
+
+
             if (keys.IsKeyDown(Keys.Escape) || gamepadstate1.Buttons.Back == ButtonState.Pressed)
             {
                 this.Exit();
             }
-
 
 
             #region editor Controls
@@ -314,12 +335,14 @@ namespace GrappleGame
                 editor.canSwitchEditor = true;
             if (editor.editorOn == true)
             {
+       
                 if (keys.IsKeyDown(Keys.F11))//save button
                 {
                     currentMap.objectSorter(objects);
                     currentMap.textfiles.Saved(currentMap.SizeX, currentMap.SizeY);
                     Load_SaveMapNames.SaveMapNames(Maps);
                     Load_SaveMapNames.SaveTransportTiles(Maps);
+                    Load_SaveMapNames.SaveCharacters(Maps);
                 }
                 editor.EditorMouseControls(mouse, GraphicsDevice, Constants.tilesize, theDude.zoom, gameTime, theDude.tilePosition);
                 //editor.EditorMouseControls tracks all mouse movement, button pressing in editor mode
@@ -449,6 +472,17 @@ namespace GrappleGame
                             }
                         }
                     }
+                    if (editor.currentEditorState == Editor.EditorState.Characters && mouse.LeftButton == ButtonState.Released && oldmouse.LeftButton == ButtonState.Pressed && mouse.X < GraphicsDevice.Viewport.Width - 200 && mouse.Y < GraphicsDevice.Viewport.Height && editor.WindowX >= 0 && editor.WindowY >= 0 && editor.WindowX < currentMap.SizeX && editor.WindowY < currentMap.SizeY)
+                    {//Character was selected to be placed
+                        currentMap.CreateNewCharacter(Content, charactersprites[(int)editor.brushers]);
+                    }
+                    if (editor.currentEditorState == Editor.EditorState.Characters && mouse.RightButton == ButtonState.Pressed && mouse.X < GraphicsDevice.Viewport.Width - 200 && mouse.Y < GraphicsDevice.Viewport.Height && editor.WindowX >= 0 && editor.WindowY >= 0 && editor.WindowX < currentMap.SizeX && editor.WindowY < currentMap.SizeY)
+                    {//right click occurred 
+                        if (currentMap.tileData[editor.WindowX, editor.WindowY].tileData.characterOnTile != -1)
+                        {//character on tile that was right clicked so enable character for editing
+                            currentMap.EditCharacter();
+                        }
+                    }
                     if (editor.currentEditorState == Editor.EditorState.Transport)
                     {
                         if (editor.CreatingTransportTile)
@@ -551,11 +585,14 @@ namespace GrappleGame
             if (currentMap.mapOn == false)
             {
                 if (gamepadstate1.IsConnected)
-                    theDude.UserInput(gamepadstate1);
-                else theDude.UserInput(keys);
+                    theDude.UserInput(gamepadstate1, oldgamepadstate1);
+                else theDude.UserInput(keys, oldkeys);
                 theDude.Update(ref currentMap, ref editor.editorOn);
             }
 
+            #region Text Input
+            CharacterJump:
+            #endregion
             if (keys.IsKeyDown(Keys.B)||(gamepadstate1.IsConnected && gamepadstate1.Buttons.Back == ButtonState.Pressed))
                 k = 0;//auto break button
 

@@ -17,6 +17,10 @@ namespace GrappleGame
         int sizeY;
         String MapName;
         public List<TransportTile> transporttiles = new List<TransportTile>();
+        public List<Character> onMapCharacters = new List<Character>();
+        private int characterBeingEdited = -1;
+        private int characterDeleted = -1;//set equal to -1 when nothing is there
+        private int characterTalked = -1;
         public int Index;
         public bool mapOn;
         textFiles textFile;
@@ -51,15 +55,29 @@ namespace GrappleGame
         {
             get { return MapName; }
         }
+        public int GetCharacterEditingState
+        {
+            get { return characterBeingEdited; }
+        }
         #endregion
-
+        
         Editor editor;
         Dude theDude;
+        Constants Constants = new Constants();
         SpriteFont font;
         public int smallmapCount;
 
-        Random rndNUM = new Random();
+        #region CharacterHandlers
+        public Constants.CharacterEventHandler characterEventHandler;
+        #endregion
 
+        Random rndNUM = new Random();
+        #region Setters
+        public void setRandomNum(Random rnd)
+        {
+            this.rndNUM = rnd;
+        }
+        #endregion
         public Map(Editor editor, Dude theDude, ContentManager Content, String MapName, Tile[] tiles, Object[] objects)
         {
             this.MapName = MapName;
@@ -68,6 +86,7 @@ namespace GrappleGame
             minimapSet = new int[this.sizeX, this.sizeY];
             this.editor = editor;
             Load(Content, tiles, objects);
+            characterEventHandler = new Constants.CharacterEventHandler(characterEvents);
         }
 
         private void calculateSize()
@@ -109,11 +128,180 @@ namespace GrappleGame
                 }
             }
         }
-        public void Update()
+        #region Character Only Code
+        public void CreateNewCharacter(ContentManager Content, Texture2D mainTexture)
         {
-            if (Keyboard.GetState().IsKeyDown(Keys.M) && editor.editorOn == false)
-                mapOn = true; //turns map on when m button is held down
-            else mapOn = false;
+            onMapCharacters.Add(new Character(Content, new Vector2(editor.WindowX, editor.WindowY), tileData[editor.WindowX, editor.WindowY].tileData.height, onMapCharacters.Count, mainTexture, characterEventHandler));
+            tileData[editor.WindowX, editor.WindowY].tileData.characterOnTile = onMapCharacters.Count - 1;
+        }
+        public void EditCharacter()
+        {
+            onMapCharacters.ElementAt(tileData[editor.WindowX, editor.WindowY].tileData.characterOnTile).wasRightClicked();
+            characterBeingEdited = tileData[editor.WindowX, editor.WindowY].tileData.characterOnTile;
+        }
+        private bool characterEvents(int EventID, string Input, int charID)
+        {
+            //Event 0 is character requesting to walk to a new tile
+            if (EventID == 0)
+            {
+                return characterWalkEvent(EventID, Input, charID);
+            }
+            //Event 1 is character requested to be deleted
+            else if (EventID == 1)
+            {
+                deleteCharacterEvent(charID);
+                return true;
+            }
+            //Event 2 is dude is next to a character so they should stop walking around and wait
+            else if (EventID == 2)
+            {
+                characterTalked = charID;
+                onMapCharacters.ElementAt(charID).PlayerNear(theDude, Input);
+                return true;
+            }
+            //Event 3 is dude is talking to the character
+            else
+            {
+
+                return onMapCharacters.ElementAt(characterTalked).Talk();
+            }
+        }
+        private bool characterWalkEvent(int EventID, string dir, int charID)
+        {
+            switch (dir)
+            {
+                case "Left":
+                    if (onMapCharacters.ElementAt(charID).tilePosition.X - 1 >= 0 && onMapCharacters.ElementAt(charID).tilePosition.X - 1 < sizeX &&
+                        onMapCharacters.ElementAt(charID).tilePosition.Y >= 0 && onMapCharacters.ElementAt(charID).tilePosition.Y < sizeY && 
+                        tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X - 1, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.characterOnTile == -1 &&
+                        !tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X - 1, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.impassible &&
+                        Math.Abs(tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.height - 
+                        tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X - 1, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.height) <= 0.5f &&
+                        !tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X - 1, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].objectData.solid &&
+                        !theDude.tilePosition.Equals(onMapCharacters.ElementAt(charID).tilePosition+new Vector2(-1,0)))
+                    {
+                        updateCharacterPositions(dir, charID);
+                        return true;
+                    }
+                    break;
+                case "Right":
+                    if (onMapCharacters.ElementAt(charID).tilePosition.X + 1 >= 0 && onMapCharacters.ElementAt(charID).tilePosition.X + 1 < sizeX &&
+                        onMapCharacters.ElementAt(charID).tilePosition.Y >= 0 && onMapCharacters.ElementAt(charID).tilePosition.Y < sizeY && 
+                        tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X + 1, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.characterOnTile == -1 &&
+                        !tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X + 1, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.impassible &&
+                        Math.Abs(tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.height -
+                        tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X + 1, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.height) <= 0.5f &&
+                        !tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X + 1, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].objectData.solid &&
+                        !theDude.tilePosition.Equals(onMapCharacters.ElementAt(charID).tilePosition+new Vector2(1,0)))
+                    {
+                        updateCharacterPositions(dir, charID);
+                        return true;
+                    }
+                    break;
+                case "Up":
+                    if (onMapCharacters.ElementAt(charID).tilePosition.X >= 0 && onMapCharacters.ElementAt(charID).tilePosition.X < sizeX &&
+                        onMapCharacters.ElementAt(charID).tilePosition.Y - 1 >= 0 && onMapCharacters.ElementAt(charID).tilePosition.Y - 1 < sizeY && 
+                        tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y - 1].tileData.characterOnTile == -1 &&
+                        !tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y - 1].tileData.impassible &&
+                        Math.Abs(tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.height -
+                        tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y - 1].tileData.height) <= 0.5f &&
+                        !tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y - 1].objectData.solid &&
+                        !theDude.tilePosition.Equals(onMapCharacters.ElementAt(charID).tilePosition+new Vector2(-1,0)))
+                    {
+                        updateCharacterPositions(dir, charID);
+                        return true;
+                    }
+                    break;
+                case "Down":
+                    if (onMapCharacters.ElementAt(charID).tilePosition.X >= 0 && onMapCharacters.ElementAt(charID).tilePosition.X < sizeX &&
+                        onMapCharacters.ElementAt(charID).tilePosition.Y + 1 >= 0 && onMapCharacters.ElementAt(charID).tilePosition.Y + 1 < sizeY && 
+                        tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y + 1].tileData.characterOnTile == -1 &&
+                        !tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y + 1].tileData.impassible &&
+                        Math.Abs(tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y].tileData.height -
+                        tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y + 1].tileData.height) <= 0.5f &&
+                        !tileData[(int)onMapCharacters.ElementAt(charID).tilePosition.X, (int)onMapCharacters.ElementAt(charID).tilePosition.Y + 1].objectData.solid &&
+                        !theDude.tilePosition.Equals(onMapCharacters.ElementAt(charID).tilePosition+new Vector2(1,0)))
+                    {
+                        updateCharacterPositions(dir, charID);
+                        return true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        }
+        private void deleteCharacterEvent(int charID)
+        {//deletes the character
+            characterDeleted = charID;
+            characterBeingEdited = -1;
+        }
+        private void updateCharacterPositions(string dir, int ID)
+        {
+            switch (dir)
+            {
+                case "Left":
+                    tileData[(int)onMapCharacters.ElementAt(ID).tilePosition.X, 
+                        (int)onMapCharacters.ElementAt(ID).tilePosition.Y].tileData.characterOnTile = -1;//set tile moving off of back to open
+                    tileData[(int)onMapCharacters.ElementAt(ID).tilePosition.X - 1,
+                        (int)onMapCharacters.ElementAt(ID).tilePosition.Y].tileData.characterOnTile = ID;//set ID to new tile to close it
+                    break;
+                case "Right":
+                    tileData[(int)onMapCharacters.ElementAt(ID).tilePosition.X, 
+                        (int)onMapCharacters.ElementAt(ID).tilePosition.Y].tileData.characterOnTile = -1;//set tile moving off of back to open
+                    tileData[(int)onMapCharacters.ElementAt(ID).tilePosition.X + 1,
+                        (int)onMapCharacters.ElementAt(ID).tilePosition.Y].tileData.characterOnTile = ID;//set ID to new tile to close it
+                    break;
+                case "Up":
+                    tileData[(int)onMapCharacters.ElementAt(ID).tilePosition.X, 
+                        (int)onMapCharacters.ElementAt(ID).tilePosition.Y].tileData.characterOnTile = -1;//set tile moving off of back to open
+                    tileData[(int)onMapCharacters.ElementAt(ID).tilePosition.X,
+                        (int)onMapCharacters.ElementAt(ID).tilePosition.Y - 1].tileData.characterOnTile = ID;//set ID to new tile to close it
+                    break;
+                case "Down":
+                    tileData[(int)onMapCharacters.ElementAt(ID).tilePosition.X, 
+                        (int)onMapCharacters.ElementAt(ID).tilePosition.Y].tileData.characterOnTile = -1;//set tile moving off of back to open
+                    tileData[(int)onMapCharacters.ElementAt(ID).tilePosition.X,
+                        (int)onMapCharacters.ElementAt(ID).tilePosition.Y + 1].tileData.characterOnTile = ID;//set ID to new tile to close it
+                    break;
+                default:
+                    break;
+            }
+        }
+        #endregion
+        public void Update(MouseState mouse, MouseState oldmouse)
+        {
+            if (!editor.editorOn)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.M))
+                    mapOn = true; //turns map on when m button is held down
+                foreach (Character character in onMapCharacters)
+                {
+                    character.Update(rndNUM.Next(0, 1000));
+                }
+            }
+            else
+            {
+                mapOn = false;
+                foreach (Character character in onMapCharacters)
+                {
+                    if (character.editUpdate(mouse, oldmouse))
+                        characterBeingEdited = -1;
+                }
+
+                //character requested to be deleted
+                //delete the character and update remaining characters ID numbers
+                if (characterDeleted != -1)
+                {
+                    onMapCharacters.RemoveAt(characterDeleted);
+                    characterDeleted = -1;
+                    for (int i = 0; i < onMapCharacters.Count; i++)
+                    {
+                        onMapCharacters.ElementAt(i).ID = i;
+                    }
+                }
+
+            }
             TileBuffer();//calculates drawing tile buffer
         }
 
@@ -163,6 +351,11 @@ namespace GrappleGame
                     }
                     minimapSet[x, y] = 1;//set visible range on minimap visible if not already
                 }
+            }
+            foreach (Character character in onMapCharacters)
+            {
+                character.Draw(spriteBatch);
+               
             }
             if (editor.editorOn)
             {
@@ -232,6 +425,11 @@ namespace GrappleGame
                 spriteBatch.Draw(map, new Rectangle((int)theDude.tilePosition.X*width, (int)theDude.tilePosition.Y*height, width, height), Color.Red); //draws dudes position on minimap
             }
             #endregion
+            foreach (Character character in onMapCharacters)
+            {
+                character.DrawHUD(spriteBatch);
+
+            }
         }
 
         public void setTheDude(Dude theDude)

@@ -48,6 +48,16 @@ namespace GrappleGame
         /// indicates the height of the tile in the map
         /// </summary>
         public float height;
+        /// <summary>
+        /// Is there a character on this tile
+        /// If not then param should equal -1
+        /// </summary>
+        public int characterOnTile;
+        /// <summary>
+        /// Is there an enemy on this tile
+        /// If not then param should equal -1
+        /// </summary>
+        public int enemyOnTile;
     }
 
     /// <summary>
@@ -115,6 +125,8 @@ namespace GrappleGame
             tileData.depth = depth;
             tileData.height = height;
             tileData.impassible = impassible == 1 ? true : false;
+            tileData.characterOnTile = -1;
+            tileData.enemyOnTile = -1;
         }
 
         /// <summary>

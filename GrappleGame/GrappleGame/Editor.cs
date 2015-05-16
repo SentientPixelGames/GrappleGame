@@ -105,6 +105,8 @@ namespace GrappleGame
             EnteringSizes = typing.userinput();            
             return EnteringSizes;
         }
+
+        
         public Map createMap(Map currentMap, Editor editor, Dude theDude, ContentManager Content, Tile[] tiles, Object[] objects)
         {
             NumericalInput typing = new NumericalInput();
@@ -379,6 +381,7 @@ namespace GrappleGame
                                     i = 1;
                                     DrawingAble = true;
                                     brushers = p;
+                                    //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                 }
                                 p++;
                             }
@@ -421,10 +424,6 @@ namespace GrappleGame
             WindowY = (int)tilePosition.Y - (int)Math.Floor((decimal)(10 * (1 / zoom))) + MouseOnMapY;
             
         }
-        //public void CreateCharacter(List<Character> characterlist, Texture2D[] charactersprites)
-        //{
-        //    //characterlist.Add(new Character(charactercount, "Hello", new Vector2(WindowX, WindowY), new Vector2(32, 32), charactersprites[brushers], new List<Vector2>()));
-        //}
         //public void ChangeTile(int tileValue, int heightValue, MouseState mouse, GraphicsDevice GraphicsDevice, Texture2D newTile, Texture2D oldTile, int heightTile, List<Character> characterlist, Texture2D[] charactersprites)
         //{
         //    if (editorOn == true)
